@@ -1,8 +1,6 @@
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using Npgsql;
 using TradingBot;
 using TradingBot.Data;
 
@@ -14,10 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 var services = builder.Services;
 
-services.AddDbContext<TradingBotContext>(builder =>
-    builder.UseNpgsql(configuration.GetRequiredSection("Database")
-                                   .Get<NpgsqlConnectionStringBuilder>()
-                                   !.ConnectionString));
+services.AddTradingBotDatabase(configuration);
 
 // PascalCaseController -> kebab-case-route
 services.AddControllers(mvc => mvc.Conventions.Add(new RouteTokenTransformerConvention(new SlugifyParameterTransformer())));

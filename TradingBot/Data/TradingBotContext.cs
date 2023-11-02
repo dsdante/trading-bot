@@ -6,6 +6,8 @@ namespace TradingBot.Data;
 
 public class TradingBotContext : DbContext
 {
+    public required DbSet<Instrument> Instruments { get; set; }
+
     public TradingBotContext(DbContextOptions<TradingBotContext> options)
         : base(options)
     {
@@ -20,5 +22,7 @@ public class TradingBotContext : DbContext
         var snakeCase = new SnakeCaseNameRewriter(CultureInfo.InvariantCulture);
         foreach (var entity in modelBuilder.Model.GetEntityTypes())
             entity.SetTableName(snakeCase.RewriteName(entity.DisplayName()));
+
+        modelBuilder.HasPostgresEnum<AssetType>();
     }
 }
