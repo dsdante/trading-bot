@@ -30,6 +30,8 @@ services.AddSwaggerGen(swaggerGen =>
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
+    configuration.AddUserSecrets<Program>();
+
     app.UseSwagger();
     app.UseSwaggerUI();
 }

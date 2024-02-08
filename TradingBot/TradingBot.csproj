@@ -9,6 +9,7 @@
     <VersionSuffix>alpha1</VersionSuffix>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
+    <UserSecretsId>$(MSBuildProjectName)</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
