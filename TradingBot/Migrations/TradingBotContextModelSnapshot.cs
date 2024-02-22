@@ -10,7 +10,7 @@ using TradingBot.Data;
 
 namespace TradingBot.Migrations
 {
-    [DbContext(typeof(TradingBotContext))]
+    [DbContext(typeof(TradingBotDbContext))]
     partial class TradingBotContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

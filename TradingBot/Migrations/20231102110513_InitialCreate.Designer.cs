@@ -11,7 +11,7 @@ using TradingBot.Data;
 
 namespace TradingBot.Migrations
 {
-    [DbContext(typeof(TradingBotContext))]
+    [DbContext(typeof(TradingBotDbContext))]
     [Migration("20231102110513_InitialCreate")]
     partial class InitialCreate
     {

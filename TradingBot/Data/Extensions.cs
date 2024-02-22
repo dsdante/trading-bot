@@ -3,7 +3,7 @@ using Npgsql;
 
 namespace TradingBot.Data;
 
-internal static class Extensions
+public static class Extensions
 {
     public static IServiceCollection AddTradingBotDatabase(this IServiceCollection services, IConfiguration configuration)
     {
@@ -14,7 +14,6 @@ internal static class Extensions
         dataSourceBuilder.MapEnum<AssetType>();
         var dataSource = dataSourceBuilder.Build();
 
-        services.AddDbContext<TradingBotContext>(builder => builder.UseNpgsql(dataSource));
-        return services;
+        return services.AddDbContext<TradingBotDbContext>(builder => builder.UseNpgsql(dataSource));
     }
 }

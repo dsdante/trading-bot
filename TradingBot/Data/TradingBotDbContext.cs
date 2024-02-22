@@ -4,14 +4,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace TradingBot.Data;
 
-public class TradingBotContext : DbContext
+public class TradingBotDbContext(DbContextOptions<TradingBotDbContext> options) : DbContext(options)
 {
     public required DbSet<Instrument> Instruments { get; set; }
-
-    public TradingBotContext(DbContextOptions<TradingBotContext> options)
-        : base(options)
-    {
-    }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) =>
         optionsBuilder.UseSnakeCaseNamingConvention();
