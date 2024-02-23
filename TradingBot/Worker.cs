@@ -1,37 +1,39 @@
-using Microsoft.EntityFrameworkCore;
-using Tinkoff.InvestApi;
-using TradingBot.Data;
+using TradingBot.Services;
 
 namespace TradingBot;
 
-public class Worker(InvestApiClient tinkoff,
-                    IServiceScopeFactory scopeFactory,
-                    ILogger<Worker> logger,
-                    IHostApplicationLifetime lifetime) : BackgroundService
+public class Worker(TinkoffService tinkoff, ILogger<Worker> logger, IHostApplicationLifetime lifetime) : BackgroundService
 {
+    // Main top-level logic
+    private async Task RunAsync(CancellationToken cancellation)
+    {
+        int count = 0;
+        await foreach (var instrument in tinkoff.GetInstruments(cancellation))
+        {
+            count++;
+            logger.LogInformation("{count} {type}: {instrument}", count, instrument.AssetType, instrument.Name);
+        }
+    }
+
     protected override async Task ExecuteAsync(CancellationToken cancellation)
     {
         try
         {
-            var shares = await tinkoff.Instruments.SharesAsync(cancellation);
-            logger.LogInformation("{instrument}", shares.Instruments.FirstOrDefault()?.Name);
-
-            await using (var scope = scopeFactory.CreateAsyncScope())
-            {
-                var db = scope.ServiceProvider.GetRequiredService<TradingBotDbContext>();
-                var x = await db.Instruments
-                    .OrderBy(instrument => instrument.Id)
-                    .Select(instrument => instrument.Name)
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(cancellation);
-                logger.LogInformation("{instrument}", x);
-            }
-
+            await RunAsync(cancellation);
             lifetime.StopApplication();
         }
-        catch (Exception e) when (e.InnerException is OperationCanceledException)  // Tinkoff API fix
+        catch (Exception e)
         {
-            throw e.InnerException;
+            // Re-throw the underlying OperationCanceledException.
+            if (e is OperationCanceledException)
+                throw;
+            while (e.InnerException != null)
+            {
+                e = e.InnerException;
+                if (e is OperationCanceledException cancelled)
+                    throw cancelled;
+            }
+            throw;
         }
     }
 }

@@ -3,3 +3,12 @@ charset = utf-8
 end_of_line = lf
 trim_trailing_whitespace = true
 insert_final_newline = true
+
+
+[*.cs]
+dotnet_naming_symbols.fields.applicable_kinds = field
+dotnet_naming_symbols.fields.applicable_accessibilities = *
+dotnet_naming_style.fields.capitalization = camel_case
+dotnet_naming_rule.fields.symbols = fields
+dotnet_naming_rule.fields.style = fields
+dotnet_naming_rule.fields.severity = suggestion
