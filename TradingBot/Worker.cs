@@ -1,18 +1,32 @@
+using TradingBot.Data;
 using TradingBot.Services;
 
 namespace TradingBot;
 
-public class Worker(TinkoffService tinkoff, ILogger<Worker> logger, IHostApplicationLifetime lifetime) : BackgroundService
+/// <summary> Top-level logic </summary>
+public class Worker(
+    TinkoffService tinkoff,
+    IHostApplicationLifetime lifetime,
+    IServiceScopeFactory scopeFactory,
+    ILogger<Worker> logger) : BackgroundService
 {
-    // Main top-level logic
+    // Entry point
     private async Task RunAsync(CancellationToken cancellation)
     {
-        int count = 0;
+        await UpdateInstruments(cancellation);
+    }
+
+    /// <summary> Refresh instrument info from Tinkoff API </summary>
+    public async Task UpdateInstruments(CancellationToken cancellation)
+    {
+        var instruments = new List<Instrument>();
         await foreach (var instrument in tinkoff.GetInstruments(cancellation))
-        {
-            count++;
-            logger.LogInformation("{count} {type}: {instrument}", count, instrument.AssetType, instrument.Name);
-        }
+            instruments.Add(instrument);
+
+        await using var scope = scopeFactory.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<TradingBotDbContext>();
+        await dbContext.Instruments.UpsertRangeAsync(instruments, cancellation);
+        await dbContext.SaveChangesAsync(cancellation);
     }
 
     protected override async Task ExecuteAsync(CancellationToken cancellation)

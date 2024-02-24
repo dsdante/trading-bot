@@ -9,11 +9,11 @@ public class TinkoffService(InvestApiClient tinkoff)
 {
     private static readonly Func<InstrumentsServiceClient, CancellationToken, Task<IEnumerable<Instrument>>>[] instrumentGetters =
     [
-        async (instruments, ct) => (await instruments.BondsAsync(ct)).Instruments.Select(i => i.ToInstrument()),
-        async (instruments, ct) => (await instruments.CurrenciesAsync(ct)).Instruments.Select(i => i.ToInstrument()),
-        async (instruments, ct) => (await instruments.EtfsAsync(ct)).Instruments.Select(i => i.ToInstrument()),
-        async (instruments, ct) => (await instruments.FuturesAsync(ct)).Instruments.Select(i => i.ToInstrument()),
-        async (instruments, ct) => (await instruments.SharesAsync(ct)).Instruments.Select(i => i.ToInstrument()),
+        async (instruments, cancellation) => (await instruments.BondsAsync(cancellation)).Instruments.Select(i => i.ToInstrument()),
+        async (instruments, cancellation) => (await instruments.CurrenciesAsync(cancellation)).Instruments.Select(i => i.ToInstrument()),
+        async (instruments, cancellation) => (await instruments.EtfsAsync(cancellation)).Instruments.Select(i => i.ToInstrument()),
+        async (instruments, cancellation) => (await instruments.FuturesAsync(cancellation)).Instruments.Select(i => i.ToInstrument()),
+        async (instruments, cancellation) => (await instruments.SharesAsync(cancellation)).Instruments.Select(i => i.ToInstrument()),
     ];
 
     public async IAsyncEnumerable<Instrument> GetInstruments([EnumeratorCancellation]CancellationToken cancellation)
@@ -21,6 +21,7 @@ public class TinkoffService(InvestApiClient tinkoff)
         var tasks = instrumentGetters
             .Select(getter => getter(tinkoff.Instruments, cancellation))
             .ToList();
+
         while (tasks.Count > 0)
         {
             var task = await Task.WhenAny(tasks);

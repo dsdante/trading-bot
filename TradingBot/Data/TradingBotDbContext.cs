@@ -13,11 +13,11 @@ public class TradingBotDbContext(DbContextOptions<TradingBotDbContext> options) 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasPostgresEnum<AssetType>();
+
         // Singular table names
         var snakeCase = new SnakeCaseNameRewriter(CultureInfo.InvariantCulture);
         foreach (var entity in modelBuilder.Model.GetEntityTypes())
             entity.SetTableName(snakeCase.RewriteName(entity.DisplayName()));
-
-        modelBuilder.HasPostgresEnum<AssetType>();
     }
 }
