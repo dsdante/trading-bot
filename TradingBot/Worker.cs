@@ -19,13 +19,15 @@ public class Worker(
     /// <summary> Refresh instrument info from Tinkoff API </summary>
     public async Task UpdateInstruments(CancellationToken cancellation)
     {
+        logger.LogInformation("Updating the instruments...");
+
         var instruments = new List<Instrument>();
         await foreach (var instrument in tinkoff.GetInstruments(cancellation))
             instruments.Add(instrument);
 
         await using var scope = scopeFactory.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<TradingBotDbContext>();
-        await dbContext.Instruments.UpsertRangeAsync(instruments, cancellation);
+        await dbContext.UpsertRangeAsync(instruments, cancellation);
         await dbContext.SaveChangesAsync(cancellation);
     }
 

@@ -1,13 +1,15 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 
 namespace TradingBot.Data;
 
+[SuppressMessage("ReSharper", "EntityFramework.ModelValidation.UnlimitedStringLength")]
 [Index(nameof(Uid), IsUnique = true)]
 public class Instrument : IEquatable<Instrument>
 {
-    public int Id { get; set; }
-    public Guid Uid { get; set; }
+    public int Id { get; init; }
+    public Guid Uid { get; init; }
     public string? Figi { get; set; }
     public required string Name { get; set; }
     public AssetType AssetType { get; set; }
