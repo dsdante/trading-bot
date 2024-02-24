@@ -2,7 +2,6 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TradingBot.Data;
@@ -12,11 +11,9 @@ using TradingBot.Data;
 namespace TradingBot.Migrations
 {
     [DbContext(typeof(TradingBotDbContext))]
-    [Migration("20240223160123_UniqueInstrumentUid")]
-    partial class UniqueInstrumentUid
+    partial class TradingBotDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -26,14 +23,50 @@ namespace TradingBot.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "asset_type", new[] { "bond", "currency", "etf", "future", "option", "share" });
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("TradingBot.Data.Candle", b =>
+                {
+                    b.Property<short>("InstrumentId")
+                        .HasColumnType("smallint")
+                        .HasColumnName("instrument");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("timestamp");
+
+                    b.Property<float>("Close")
+                        .HasColumnType("real")
+                        .HasColumnName("close");
+
+                    b.Property<float>("High")
+                        .HasColumnType("real")
+                        .HasColumnName("high");
+
+                    b.Property<float>("Low")
+                        .HasColumnType("real")
+                        .HasColumnName("low");
+
+                    b.Property<float>("Open")
+                        .HasColumnType("real")
+                        .HasColumnName("open");
+
+                    b.Property<int>("Volume")
+                        .HasColumnType("integer")
+                        .HasColumnName("volume");
+
+                    b.HasKey("InstrumentId", "Timestamp")
+                        .HasName("pk_candle");
+
+                    b.ToTable("candle", (string)null);
+                });
+
             modelBuilder.Entity("TradingBot.Data.Instrument", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<short>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
+                        .HasColumnType("smallint")
                         .HasColumnName("id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<short>("Id"));
 
                     b.Property<bool>("ApiTradeAvailable")
                         .HasColumnType("boolean")
@@ -84,6 +117,18 @@ namespace TradingBot.Migrations
                         .HasDatabaseName("ix_instrument_uid");
 
                     b.ToTable("instrument", (string)null);
+                });
+
+            modelBuilder.Entity("TradingBot.Data.Candle", b =>
+                {
+                    b.HasOne("TradingBot.Data.Instrument", "Instrument")
+                        .WithMany()
+                        .HasForeignKey("InstrumentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_candle_instruments_instrument");
+
+                    b.Navigation("Instrument");
                 });
 #pragma warning restore 612, 618
         }

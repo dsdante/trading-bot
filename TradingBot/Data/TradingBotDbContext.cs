@@ -9,7 +9,8 @@ public class TradingBotDbContext(
     DbContextOptions<TradingBotDbContext> options,
     ILogger<TradingBotDbContext> logger) : DbContext(options)
 {
-    public required DbSet<Instrument> Instruments { get; set; }
+    public required DbSet<Instrument> Instruments { get; init; }
+    public required DbSet<Candle> Candles { get; init; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) =>
         optionsBuilder.UseSnakeCaseNamingConvention();

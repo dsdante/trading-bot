@@ -13,6 +13,11 @@ public class Worker(
     // Entry point
     private async Task RunAsync(CancellationToken cancellation)
     {
+        /*
+        await using var scope = scopeFactory.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<TradingBotDbContext>();
+        await dbContext.Database.EnsureCreatedAsync(cancellation);
+        */
         await UpdateInstruments(cancellation);
     }
 

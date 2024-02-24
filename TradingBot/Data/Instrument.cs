@@ -8,7 +8,7 @@ namespace TradingBot.Data;
 [Index(nameof(Uid), IsUnique = true)]
 public class Instrument : IEquatable<Instrument>
 {
-    public int Id { get; init; }
+    public short Id { get; init; }
     public Guid Uid { get; init; }
     public string? Figi { get; set; }
     public required string Name { get; set; }
