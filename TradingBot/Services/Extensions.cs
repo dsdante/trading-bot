@@ -3,7 +3,7 @@ using Tinkoff.InvestApi.V1;
 using AssetType = TradingBot.Data.AssetType;
 using Instrument = TradingBot.Data.Instrument;
 
-namespace TradingBot.Services;
+namespace TradingBot;
 
 internal static class Extensions
 {
@@ -105,7 +105,7 @@ internal static class Extensions
         new()
         {
             Uid = new Guid(response.Uid),
-            Figi = null,
+            Figi = response.Figi,
             Name = response.Name,
             AssetType = AssetType.Share,
             Lot = response.Lot,

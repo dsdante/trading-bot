@@ -3,7 +3,7 @@ using Tinkoff.InvestApi;
 using TradingBot.Data;
 using InstrumentsServiceClient = Tinkoff.InvestApi.V1.InstrumentsService.InstrumentsServiceClient;
 
-namespace TradingBot.Services;
+namespace TradingBot;
 
 public class TinkoffService(InvestApiClient tinkoff)
 {
