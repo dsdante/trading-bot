@@ -24,11 +24,11 @@ public class HistoryService(
 
     public async Task DownloadHistory(CancellationToken cancellation)
     {
-        var figi = await dbContext.Instruments
-            .Where(i => i.Name == "Роснефть")
-            .Select(i => i.Figi)
-            .FirstOrDefaultAsync(cancellation)
+        var instrument = await dbContext.Instruments
+            .AsNoTracking()
+            .FirstOrDefaultAsync(i => i.Name == "Роснефть", cancellation)
             ?? throw new Exception("Instrument not found");
-        await tinkoffHistoryData.GetAsync(figi, DateTime.UtcNow.Year, cancellation);
+
+        await tinkoffHistoryData.DownloadCsvAsync(instrument, DateTime.UtcNow.Year, cancellation);
     }
 }

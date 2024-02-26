@@ -6,6 +6,7 @@ insert_final_newline = true
 
 
 [*.cs]
+# All fields are in camelCase.
 dotnet_naming_symbols.fields.applicable_kinds = field
 dotnet_naming_symbols.fields.applicable_accessibilities = *
 dotnet_naming_style.fields.capitalization = camel_case
