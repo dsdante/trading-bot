@@ -8,7 +8,7 @@ using TradingBot.Data;
 namespace TradingBotTests;
 
 [SetUpFixture]
-public class Configuration
+public class Configuration : IAsyncDisposable
 {
     // TODO: add Worker SDK, ServiceProvider
 
@@ -54,8 +54,7 @@ public class Configuration
     private static string? connectionString;
     private static DbDataSource? dataSource;
 
-    [OneTimeTearDown]
-    public async Task OneTimeTearDown()
+    public async ValueTask DisposeAsync()
     {
         loggerFactory?.Dispose();
         if (dataSource != null)

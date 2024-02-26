@@ -24,6 +24,7 @@ internal class CandleHistoryCsvStream : IAsyncDisposable
     /// <summary> Begin a database transaction and open a data import stream </summary>
     public static async Task<CandleHistoryCsvStream> OpenAsync(string connectionString, CancellationToken cancellation)
     {
+        Debug.Assert(connectionString != null);
         cancellation.ThrowIfCancellationRequested();
         var connection = new NpgsqlConnection(connectionString);
         NpgsqlTransaction? transaction = null;
