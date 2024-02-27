@@ -42,6 +42,7 @@ internal class CandleHistoryCsvStream : IAsyncDisposable
             }
 
             var writer = await connection.BeginTextImportAsync(
+                // The column order is OCHLV, not OHLCV.
                 $"COPY {tempTableName} (instrument, timestamp, open, close, high, low, volume) FROM STDIN CSV DELIMITER ';' ENCODING 'SQL_ASCII';",
                 cancellation);
             Debug.Assert(writer is StreamWriter);
