@@ -27,38 +27,25 @@ public class TinkoffHistoryDataService(HttpClient httpClient, ILogger<TinkoffHis
         var writing = FillPipeAsync(stream, pipe.Writer, cancellation);
 
         using var resultOwner = MemoryPool<byte>.Shared.Rent(128);
-        var result = resultOwner.Memory;
+        var resultBuffer = resultOwner.Memory;
         // Populate the beginning of the result buffer with the instrument ID.
-        var idLength = Encoding.ASCII.GetBytes(instrument.Id.ToString(), result.Span);
+        var idLength = Encoding.ASCII.GetBytes(instrument.Id.ToString(), resultBuffer.Span);
         var candleCount = 0;
 
         while (true)
         {
-            var read = await pipe.Reader.ReadAsync(cancellation);
-            var buffer = read.Buffer;
+            var readResult = await pipe.Reader.ReadAsync(cancellation);
+            var readBuffer = readResult.Buffer;
             while (true)
             {
-                // Replace the GUID with the instrument ID and the trailing semicolon with a newline.
-
-                var endOfLine = buffer.PositionOf((byte)'\n') ?? default;
-                if (endOfLine.GetObject() == null)
+                var line = ProcessLine(ref readBuffer, resultBuffer, idLength);
+                if (line.IsEmpty)
                     break;
-
-                // Skip the GUID and the trailing semicolon.
-                var line = buffer.Slice(36, buffer.GetOffset(endOfLine) - buffer.GetOffset(buffer.Start) - 37);
-                var resultLength = idLength + (int)line.Length + 1;
-                if (result.Length < resultLength)
-                    throw new InternalBufferOverflowException("CSV line too long: " +
-                        Encoding.ASCII.GetString(buffer.Slice(0, buffer.GetOffset(endOfLine) - buffer.GetOffset(buffer.Start))));
-                line.CopyTo(result[idLength..].Span);
-                result.Span[resultLength - 1] = (byte)'\n';
-
-                await destination.WriteAsync(result[..resultLength], cancellation);
+                await destination.WriteAsync(line, cancellation);
                 candleCount++;
-                buffer = buffer.Slice(buffer.GetPosition(1, endOfLine));
             }
-            pipe.Reader.AdvanceTo(buffer.Start, buffer.End);
-            if (read.IsCompleted)
+            pipe.Reader.AdvanceTo(readBuffer.Start, readBuffer.End);
+            if (readResult.IsCompleted)
                 break;
         }
 
@@ -66,7 +53,28 @@ public class TinkoffHistoryDataService(HttpClient httpClient, ILogger<TinkoffHis
         logger.LogInformation("{count} candles downloaded for {instrument} ({year}) from {url}", candleCount, instrument.Name, year, url);
     }
 
-    // Write all files from a zip file as a single stream of data
+    // Replace the GUID with the instrument ID and the trailing semicolon with a newline.
+    private static Memory<byte> ProcessLine(ref ReadOnlySequence<byte> readBuffer, Memory<byte> resultBuffer, int idLength)
+    {
+        var endOfLine = readBuffer.PositionOf((byte)'\n') ?? default;
+        if (endOfLine.GetObject() == null)
+            return default;
+
+        // Skip the GUID and the trailing semicolon.
+        var line = readBuffer.Slice(36, readBuffer.GetOffset(endOfLine) - readBuffer.GetOffset(readBuffer.Start) - 37);
+        var resultLength = idLength + (int)line.Length + 1;
+        if (resultBuffer.Length < resultLength)
+            throw new InternalBufferOverflowException("CSV line too long: " +
+                Encoding.ASCII.GetString(readBuffer.Slice(0, readBuffer.GetOffset(endOfLine) - readBuffer.GetOffset(readBuffer.Start))));
+        line.CopyTo(resultBuffer[idLength..].Span);
+        resultBuffer.Span[resultLength - 1] = (byte)'\n';
+
+        // Advance the buffer.
+        readBuffer = readBuffer.Slice(readBuffer.GetPosition(1, endOfLine));
+        return resultBuffer[..resultLength];
+    }
+
+    // Read all files from a zip file as a continuous stream
     private static async Task FillPipeAsync(Stream source, PipeWriter destination, CancellationToken cancellation)
     {
         using var archive = new ZipArchive(source);
