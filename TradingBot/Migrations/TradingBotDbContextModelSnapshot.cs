@@ -17,7 +17,7 @@ namespace TradingBot.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.1")
+                .HasAnnotation("ProductVersion", "8.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "asset_type", new[] { "bond", "currency", "etf", "future", "option", "share" });
@@ -80,17 +80,13 @@ namespace TradingBot.Migrations
                         .HasColumnType("text")
                         .HasColumnName("figi");
 
-                    b.Property<DateTime?>("First1DayCandleDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("first1day_candle_date");
-
-                    b.Property<DateTime?>("First1MinCandleDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("first1min_candle_date");
-
                     b.Property<bool>("ForQualInvestor")
                         .HasColumnType("boolean")
                         .HasColumnName("for_qual_investor_flag");
+
+                    b.Property<bool>("HasEarliest1MinCandle")
+                        .HasColumnType("boolean")
+                        .HasColumnName("has_earliest_1min_candle");
 
                     b.Property<int>("Lot")
                         .HasColumnType("integer")
@@ -122,13 +118,18 @@ namespace TradingBot.Migrations
             modelBuilder.Entity("TradingBot.Data.Candle", b =>
                 {
                     b.HasOne("TradingBot.Data.Instrument", "Instrument")
-                        .WithMany()
+                        .WithMany("Candles")
                         .HasForeignKey("InstrumentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_candle_instruments_instrument");
 
                     b.Navigation("Instrument");
+                });
+
+            modelBuilder.Entity("TradingBot.Data.Instrument", b =>
+                {
+                    b.Navigation("Candles");
                 });
 #pragma warning restore 612, 618
         }

@@ -30,8 +30,7 @@ namespace TradingBot.Migrations
                     otc_flag = table.Column<bool>(type: "boolean", nullable: false),
                     for_qual_investor_flag = table.Column<bool>(type: "boolean", nullable: false),
                     api_trade_available_flag = table.Column<bool>(type: "boolean", nullable: false),
-                    first1min_candle_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    first1day_candle_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    has_earliest_1min_candle = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {

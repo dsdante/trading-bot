@@ -45,8 +45,7 @@ public class TradingBotDbContext(
                 oldInstrument.Otc = instrument.Otc;
                 oldInstrument.ForQualInvestor = instrument.ForQualInvestor;
                 oldInstrument.ApiTradeAvailable = instrument.ApiTradeAvailable;
-                oldInstrument.First1MinCandleDate = instrument.First1MinCandleDate;
-                oldInstrument.First1DayCandleDate = instrument.First1DayCandleDate;
+                oldInstrument.HasEarliest1MinCandle |= instrument.HasEarliest1MinCandle;
                 updated[instrument.Uid] = oldInstrument;
             }
             else

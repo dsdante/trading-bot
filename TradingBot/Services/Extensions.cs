@@ -39,8 +39,6 @@ internal static class Extensions
             Otc = response.OtcFlag,
             ForQualInvestor = response.ForQualInvestorFlag,
             ApiTradeAvailable = response.ApiTradeAvailableFlag,
-            First1MinCandleDate = response.First1MinCandleDate?.ToDateTime(),
-            First1DayCandleDate = response.First1DayCandleDate?.ToDateTime(),
         };
 
     public static Instrument ToInstrument(this Currency response) =>
@@ -54,8 +52,6 @@ internal static class Extensions
             Otc = response.OtcFlag,
             ForQualInvestor = response.ForQualInvestorFlag,
             ApiTradeAvailable = response.ApiTradeAvailableFlag,
-            First1MinCandleDate = response.First1MinCandleDate?.ToDateTime(),
-            First1DayCandleDate = response.First1DayCandleDate?.ToDateTime(),
         };
 
     public static Instrument ToInstrument(this Etf response) =>
@@ -69,8 +65,6 @@ internal static class Extensions
             Otc = response.OtcFlag,
             ForQualInvestor = response.ForQualInvestorFlag,
             ApiTradeAvailable = response.ApiTradeAvailableFlag,
-            First1MinCandleDate = response.First1MinCandleDate?.ToDateTime(),
-            First1DayCandleDate = response.First1DayCandleDate?.ToDateTime(),
         };
 
     public static Instrument ToInstrument(this Future response) =>
@@ -84,8 +78,6 @@ internal static class Extensions
             Otc = response.OtcFlag,
             ForQualInvestor = response.ForQualInvestorFlag,
             ApiTradeAvailable = response.ApiTradeAvailableFlag,
-            First1MinCandleDate = response.First1MinCandleDate?.ToDateTime(),
-            First1DayCandleDate = response.First1DayCandleDate?.ToDateTime(),
         };
 
     public static Instrument ToInstrument(this Option response) =>
@@ -99,8 +91,6 @@ internal static class Extensions
             Otc = response.OtcFlag,
             ForQualInvestor = response.ForQualInvestorFlag,
             ApiTradeAvailable = response.ApiTradeAvailableFlag,
-            First1MinCandleDate = response.First1MinCandleDate?.ToDateTime(),
-            First1DayCandleDate = response.First1DayCandleDate?.ToDateTime(),
         };
 
     public static Instrument ToInstrument(this Share response) =>
@@ -114,7 +104,5 @@ internal static class Extensions
             Otc = response.OtcFlag,
             ForQualInvestor = response.ForQualInvestorFlag,
             ApiTradeAvailable = response.ApiTradeAvailableFlag,
-            First1MinCandleDate = response.First1MinCandleDate?.ToDateTime(),
-            First1DayCandleDate = response.First1DayCandleDate?.ToDateTime(),
         };
 }

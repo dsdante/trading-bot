@@ -17,10 +17,9 @@ public class Instrument : IEquatable<Instrument>
     [Column("otc_flag")] public bool Otc { get; set; }
     [Column("for_qual_investor_flag")] public bool ForQualInvestor { get; set; }
     [Column("api_trade_available_flag")] public bool ApiTradeAvailable { get; set; }
-    public DateTime? First1MinCandleDate { get; set; }
-    public DateTime? First1DayCandleDate { get; set; }
+    [Column("has_earliest_1min_candle")] public bool HasEarliest1MinCandle { get; set; }
 
-    public ICollection<Candle> Candles { get; set; } = null!;
+    public ICollection<Candle> Candles { get; init; } = null!;
 
     public override string ToString() => Name;
 
@@ -39,9 +38,7 @@ public class Instrument : IEquatable<Instrument>
                Lot == other.Lot &&
                Otc == other.Otc &&
                ForQualInvestor == other.ForQualInvestor &&
-               ApiTradeAvailable == other.ApiTradeAvailable &&
-               First1MinCandleDate == other.First1MinCandleDate &&
-               First1DayCandleDate == other.First1DayCandleDate;
+               ApiTradeAvailable == other.ApiTradeAvailable;
     }
 
     public override bool Equals(object? obj) =>
@@ -67,8 +64,6 @@ public class Instrument : IEquatable<Instrument>
         hashCode.Add(Otc);
         hashCode.Add(ForQualInvestor);
         hashCode.Add(ApiTradeAvailable);
-        hashCode.Add(First1MinCandleDate);
-        hashCode.Add(First1DayCandleDate);
         return hashCode.ToHashCode();
     }
 }
