@@ -1,3 +1,4 @@
+using System.Net;
 using Microsoft.EntityFrameworkCore;
 using TradingBot.Data;
 
@@ -29,6 +30,12 @@ public class HistoryService(
             .FirstOrDefaultAsync(i => i.Name == "Роснефть", cancellation)
             ?? throw new Exception("Instrument not found");
 
-        await tinkoffHistoryData.DownloadCsvAsync(instrument, DateTime.UtcNow.Year, cancellation);
+        for (int year = DateTime.UtcNow.Year; ; year--)
+        {
+            var (status, limit, limitTimeout) = await tinkoffHistoryData.DownloadCsvAsync(instrument, year, cancellation);
+            if (status != HttpStatusCode.OK)
+                break;
+            //logger.LogInformation("Limit: {limit}; timeout: {timeout:HH:mm:ss.fff K}.", limit, limitTimeout);
+        }
     }
 }

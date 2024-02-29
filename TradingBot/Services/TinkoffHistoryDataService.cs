@@ -1,6 +1,8 @@
 using System.Buffers;
+using System.Diagnostics;
 using System.IO.Compression;
 using System.IO.Pipelines;
+using System.Net;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using TradingBot.Data;
@@ -14,14 +16,20 @@ public class TinkoffHistoryDataService(
     ILogger<TinkoffHistoryDataService> logger)
 {
     /// <summary> Download candle history and write it to the destination. </summary>
-    public async Task DownloadCsvAsync(Instrument instrument, int year, CancellationToken cancellation)
+    /// <returns>(Tinkoff API throttling limit, limit reset timeout)</returns>
+    public async Task<(HttpStatusCode status, int limit, DateTimeOffset limitTimeout)> DownloadCsvAsync(Instrument instrument, int year, CancellationToken cancellation)
     {
         ArgumentNullException.ThrowIfNull(instrument, nameof(instrument));
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(year, nameof(year));
 
+        var stopwatch = Stopwatch.StartNew();
         var url = $"https://invest-public-api.tinkoff.ru/history-data?figi={instrument.Figi}&year={year}";
         using var response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellation);
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+            return (response.StatusCode, default, default);
+        var limit = response.Headers.Get<int>("x-ratelimit-remaining");
+        var limitTimeout = DateTimeOffset.Now.AddSeconds(response.Headers.Get<double>("x-ratelimit-reset"));
+
         await using var source = await response.Content.ReadAsStreamAsync(cancellation);
         await using var destination = await CandleHistoryCsvStream.OpenAsync(dbContext.Database.GetConnectionString()!, loggerFactory, cancellation);
 
@@ -31,7 +39,9 @@ public class TinkoffHistoryDataService(
         await fillPipeTask;
 
         await destination.CommitAsync(cancellation);
-        logger.LogInformation("{count} candles downloaded for {instrument} ({year}) from {url}", candleCount, instrument.Name, year, url);
+        logger.LogInformation("Downloaded {count} candles in {time:F3}s for {instrument} ({year}) from {url}",
+            candleCount, stopwatch.Elapsed.TotalSeconds, instrument.Name, year, url);
+        return (response.StatusCode, limit, limitTimeout);
     }
 
     // Read all files from a zip archive as a continuous stream.

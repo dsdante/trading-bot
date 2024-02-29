@@ -1,4 +1,6 @@
-using Grpc.Core;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Net.Http.Headers;
 using Tinkoff.InvestApi.V1;
 using AssetType = TradingBot.Data.AssetType;
 using Instrument = TradingBot.Data.Instrument;
@@ -7,20 +9,20 @@ namespace TradingBot;
 
 internal static class Extensions
 {
-    // Two methods missing in Tinkoff API C# library
+    // Get a strongly-typed HTTP header value.
+    public static T Get<T>(this HttpHeaders headers, string name)
+    {
+        Debug.Assert(!string.IsNullOrWhiteSpace(name), "Empty header name.");
 
-    private static readonly InstrumentsRequest instrumentsRequest = new();
+        if (!headers.TryGetValues(name, out var values))
+            throw new HttpIOException(HttpRequestError.InvalidResponse, $"Missing header {name}. Received headers:\n{headers}");
+        var value = values.First();
 
-    public static AsyncUnaryCall<CurrenciesResponse> CurrenciesAsync(
-        this InstrumentsService.InstrumentsServiceClient instrumentsServiceClient,
-        CancellationToken cancellationToken = default) =>
-        instrumentsServiceClient.CurrenciesAsync(instrumentsRequest, null, null, cancellationToken);
-
-    [Obsolete("Marked obsolete in the underlying Tinkoff API C# library")]
-    public static AsyncUnaryCall<OptionsResponse> OptionsAsync(
-        this InstrumentsService.InstrumentsServiceClient instrumentsServiceClient,
-        CancellationToken cancellationToken = default) =>
-        instrumentsServiceClient.OptionsAsync(instrumentsRequest, null, null, cancellationToken);
+        var type = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
+        var converter = TypeDescriptor.GetConverter(type);
+        Debug.Assert(converter.CanConvertFrom(typeof(string)), $"Cannot parse type {type.Name}.");
+        return (T)converter.ConvertFromString(value)!;
+    }
 
 
     // API to DB
