@@ -10,8 +10,7 @@ services.AddTradingBotDatabase(configuration);
 services.AddInvestApiClient((_, settings) => configuration.Bind("Tinkoff", settings));
 services.AddHttpClient<TinkoffHistoryDataService>(httpClient =>
     httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-        "Bearer",
-        configuration.GetSection("Tinkoff:AccessToken").Get<string>()));
+        "Bearer", configuration.GetSection("Tinkoff:AccessToken").Get<string>()));
 services.AddScoped<TinkoffService>();
 services.AddScoped<HistoryService>();
 services.AddHostedService<Worker>();

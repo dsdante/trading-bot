@@ -20,9 +20,11 @@ internal class CandleHistoryCsvStream : IAsyncDisposable
     private readonly NpgsqlTransaction transaction;
     private readonly StreamWriter writer;
     private readonly string tempTableName;
+    private readonly ILoggerFactory? loggerFactory;
+    private bool commited;
 
     /// <summary> Begin a database transaction and open a data import stream </summary>
-    public static async Task<CandleHistoryCsvStream> OpenAsync(string connectionString, CancellationToken cancellation)
+    public static async Task<CandleHistoryCsvStream> OpenAsync(string connectionString, ILoggerFactory? loggerFactory, CancellationToken cancellation)
     {
         Debug.Assert(connectionString != null);
         cancellation.ThrowIfCancellationRequested();
@@ -47,7 +49,7 @@ internal class CandleHistoryCsvStream : IAsyncDisposable
                 cancellation);
             Debug.Assert(writer is StreamWriter);
 
-            return new CandleHistoryCsvStream(connection, transaction, (StreamWriter)writer, tempTableName);
+            return new CandleHistoryCsvStream(connection, transaction, (StreamWriter)writer, tempTableName, loggerFactory);
         }
         catch
         {
@@ -60,12 +62,13 @@ internal class CandleHistoryCsvStream : IAsyncDisposable
 
     public static implicit operator Stream(CandleHistoryCsvStream self) => self.BaseStream;
 
-    private CandleHistoryCsvStream(NpgsqlConnection connection, NpgsqlTransaction transaction, StreamWriter writer, string tempTableName)
+    private CandleHistoryCsvStream(NpgsqlConnection connection, NpgsqlTransaction transaction, StreamWriter writer, string tempTableName, ILoggerFactory? loggerFactory)
     {
         this.connection = connection;
         this.transaction = transaction;
         this.writer = writer;
         this.tempTableName = tempTableName;
+        this.loggerFactory = loggerFactory;
     }
 
     /// <summary> Commit the changes to the database and close the stream</summary>
@@ -81,11 +84,14 @@ internal class CandleHistoryCsvStream : IAsyncDisposable
             await command.ExecuteNonQueryAsync(cancellation);
         }
         await transaction.CommitAsync(cancellation);
+        commited = true;
     }
 
     /// <summary> Roll back any uncommited changes and close the database connection </summary>
     public async ValueTask DisposeAsync()
     {
+        if (!commited)
+            loggerFactory?.CreateLogger<CandleHistoryCsvStream>().LogWarning("Candle history not commited.");
         await using (connection)
             await transaction.DisposeAsync();
     }

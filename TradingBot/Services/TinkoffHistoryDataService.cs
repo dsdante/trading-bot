@@ -2,18 +2,20 @@ using System.Buffers;
 using System.IO.Compression;
 using System.IO.Pipelines;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
 using TradingBot.Data;
 
 namespace TradingBot;
 
-public class TinkoffHistoryDataService(HttpClient httpClient, ILogger<TinkoffHistoryDataService> logger)
+public class TinkoffHistoryDataService(
+    HttpClient httpClient,
+    TradingBotDbContext dbContext,
+    ILoggerFactory loggerFactory,
+    ILogger<TinkoffHistoryDataService> logger)
 {
     /// <summary> Download candle history and write it to the destination. </summary>
-    public async Task DownloadCsvAsync(Stream destination, Instrument instrument, int year, CancellationToken cancellation)
+    public async Task DownloadCsvAsync(Instrument instrument, int year, CancellationToken cancellation)
     {
-        ArgumentNullException.ThrowIfNull(destination, nameof(destination));
-        if (!destination.CanWrite)
-            throw new NotSupportedException("Stream does not support writing.");
         ArgumentNullException.ThrowIfNull(instrument, nameof(instrument));
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(year, nameof(year));
 
@@ -21,11 +23,14 @@ public class TinkoffHistoryDataService(HttpClient httpClient, ILogger<TinkoffHis
         using var response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellation);
         response.EnsureSuccessStatusCode();
         await using var source = await response.Content.ReadAsStreamAsync(cancellation);
+        await using var destination = await CandleHistoryCsvStream.OpenAsync(dbContext.Database.GetConnectionString()!, loggerFactory, cancellation);
 
         var pipe = new Pipe();
         var fillPipeTask = FillPipeAsync(source, pipe.Writer, cancellation);
         var candleCount = await ReadPipeAsync(pipe.Reader, destination, instrument.Id, cancellation);
         await fillPipeTask;
+
+        await destination.CommitAsync(cancellation);
         logger.LogInformation("{count} candles downloaded for {instrument} ({year}) from {url}", candleCount, instrument.Name, year, url);
     }
 

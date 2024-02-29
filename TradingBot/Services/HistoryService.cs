@@ -29,8 +29,6 @@ public class HistoryService(
             .FirstOrDefaultAsync(i => i.Name == "Роснефть", cancellation)
             ?? throw new Exception("Instrument not found");
 
-        await using var stream = await CandleHistoryCsvStream.OpenAsync(dbContext.Database.GetConnectionString()!, cancellation);
-        await tinkoffHistoryData.DownloadCsvAsync(stream, instrument, DateTime.UtcNow.Year, cancellation);
-        await stream.CommitAsync(cancellation);
+        await tinkoffHistoryData.DownloadCsvAsync(instrument, DateTime.UtcNow.Year, cancellation);
     }
 }

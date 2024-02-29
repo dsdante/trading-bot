@@ -29,7 +29,7 @@ public class CandleHistoryCsvStreamTests : IAsyncDisposable
     [Test]
     public async Task Write()
     {
-        await using var dbStream = await CandleHistoryCsvStream.OpenAsync(connectionString, CancellationToken.None);
+        await using var dbStream = await CandleHistoryCsvStream.OpenAsync(connectionString, Configuration.LoggerFactory, CancellationToken.None);
         await using var file = File.OpenRead(Path.Combine("CandleHistoryCsv", "candle.csv"));
         await file.CopyToAsync(dbStream);
         await dbStream.CommitAsync(CancellationToken.None);
@@ -40,7 +40,7 @@ public class CandleHistoryCsvStreamTests : IAsyncDisposable
     [Test]
     public async Task WriteAfterCommit()
     {
-        await using var dbStream = await CandleHistoryCsvStream.OpenAsync(connectionString, CancellationToken.None);
+        await using var dbStream = await CandleHistoryCsvStream.OpenAsync(connectionString, Configuration.LoggerFactory, CancellationToken.None);
         await dbStream.CommitAsync(CancellationToken.None);
         await using var file = File.OpenRead(Path.Combine("CandleHistoryCsv", "candle.csv"));
         // "The COPY operation has already ended."
@@ -50,7 +50,7 @@ public class CandleHistoryCsvStreamTests : IAsyncDisposable
     [Test]
     public async Task MalformattedCsv()
     {
-        await using var dbStream = await CandleHistoryCsvStream.OpenAsync(connectionString, CancellationToken.None);
+        await using var dbStream = await CandleHistoryCsvStream.OpenAsync(connectionString, Configuration.LoggerFactory, CancellationToken.None);
         await using var file = File.OpenRead(Path.Combine("CandleHistoryCsv", "malformatted.csv"));
         await file.CopyToAsync(dbStream);
         // "22P04: extra data after last expected column"
