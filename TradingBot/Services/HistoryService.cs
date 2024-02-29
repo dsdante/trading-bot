@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using Microsoft.EntityFrameworkCore;
 using TradingBot.Data;
@@ -23,19 +24,42 @@ public class HistoryService(
         await dbContext.SaveChangesAsync(cancellation);
     }
 
+    [SuppressMessage("ReSharper", "VariableHidesOuterVariable")]
     public async Task DownloadHistory(CancellationToken cancellation)
     {
-        var instrument = await dbContext.Instruments
+        var assetTypes = new[] { AssetType.Bond, AssetType.Currency, AssetType.Share, AssetType.Etf };
+
+        // <instrument, earliest candle timestamp>
+        var earliestCandles = await dbContext.Candles
+            .Where(candle => dbContext.Instruments
+                .Where(instrument => assetTypes.Contains(instrument.AssetType))
+                .Select(instrument => instrument.Id)
+                .Contains(candle.InstrumentId))
+            .GroupBy(candle => candle.InstrumentId)
+            .Select(group => new
+            {
+                instrumentId = group.Key,
+                firstTimestamp = group.Min(candle => candle.Timestamp),
+            })
+            .Join(dbContext.Instruments,
+                candle => candle.instrumentId,
+                instrument => instrument.Id,
+                (candle, instrument) => new { instrument, candle.firstTimestamp })
             .AsNoTracking()
-            .FirstOrDefaultAsync(i => i.Name == "Роснефть", cancellation)
-            ?? throw new Exception("Instrument not found");
+            .ToDictionaryAsync(
+                pair => pair.instrument,
+                pair => pair.firstTimestamp,
+                cancellation);
+
+        var (instrument, earliest) = earliestCandles.First();
+        logger.LogInformation("{instrument} {earliest:yyyy-MM-dd HH:mm:ss K}", instrument, earliest);
 
         for (int year = DateTime.UtcNow.Year; ; year--)
         {
             var (status, limit, limitTimeout) = await tinkoffHistoryData.DownloadCsvAsync(instrument, year, cancellation);
             if (status != HttpStatusCode.OK)
                 break;
-            //logger.LogInformation("Limit: {limit}; timeout: {timeout:HH:mm:ss.fff K}.", limit, limitTimeout);
+            logger.LogInformation("Limit: {limit}; timeout: {timeout:HH:mm:ss.fff K}.", limit, limitTimeout);
         }
     }
 }

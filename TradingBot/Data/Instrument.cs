@@ -20,6 +20,10 @@ public class Instrument : IEquatable<Instrument>
     public DateTime? First1MinCandleDate { get; set; }
     public DateTime? First1DayCandleDate { get; set; }
 
+    public ICollection<Candle> Candles { get; set; } = null!;
+
+    public override string ToString() => Name;
+
     public bool Equals(Instrument? other)
     {
         if (other is null)
