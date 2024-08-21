@@ -50,10 +50,12 @@ public class TradingBotDbContext(
             }
             else
             {
-                Debug.Assert(instrument.Id == 0);
+                Debug.Assert(instrument.Id == 0, "Cannot upsert instruments with a specified (non-zero) ID.");
                 added[instrument.Uid] = instrument;
             }
         }
+
+        // TODO: Race condition
 
         await Instruments.AddRangeAsync(added.Values, cancellation);
         Instruments.UpdateRange(updated.Values);

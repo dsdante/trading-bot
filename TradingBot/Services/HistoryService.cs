@@ -26,6 +26,7 @@ public class HistoryService(
 
     [SuppressMessage("ReSharper", "EntityFramework.UnsupportedServerSideFunctionCall")]
     [SuppressMessage("ReSharper", "VariableHidesOuterVariable")]
+    [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression")]
     public async Task DownloadHistory(CancellationToken cancellation)
     {
         var assetTypes = new[] { AssetType.Bond, AssetType.Currency, AssetType.Share, AssetType.Etf };

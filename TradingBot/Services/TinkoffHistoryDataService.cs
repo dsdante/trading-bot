@@ -104,7 +104,7 @@ public class TinkoffHistoryDataService(
         var line = readBuffer.Slice(36, readBuffer.GetOffset(endOfLine) - readBuffer.GetOffset(readBuffer.Start) - 37);
         var resultLength = idLength + (int)line.Length + 1;
         if (resultBuffer.Length < resultLength)
-            throw new InternalBufferOverflowException("CSV line too long: " +
+            throw new InternalBufferOverflowException($"CSV line longer than {resultBuffer.Length} characters: " +
                 Encoding.ASCII.GetString(readBuffer.Slice(0, readBuffer.GetPosition(1, line.End))));
         line.CopyTo(resultBuffer[idLength..].Span);
         resultBuffer.Span[resultLength - 1] = (byte)'\n';

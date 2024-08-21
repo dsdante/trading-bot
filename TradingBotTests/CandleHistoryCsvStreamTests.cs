@@ -1,24 +1,23 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Npgsql;
 using NUnit.Framework;
 using TradingBot.Data;
 
 namespace TradingBotTests;
 
-public class CandleHistoryCsvStreamTests : IAsyncDisposable
+public class CandleHistoryCsvStreamTests
 {
-    private string connectionString = null!;
-    private TradingBotDbContext dbContext = null!;
+    private readonly string connectionString = Configuration.ConnectionString;
+    private readonly TradingBotDbContext dbContext = Configuration.DbContext;
 
     [OneTimeSetUp]
     public async Task OneTimeSetUp()
     {
-        connectionString = Configuration.ConnectionString;
-        var logger = Configuration.LoggerFactory.CreateLogger<TradingBotDbContext>();
-        var optionsBuilder = new DbContextOptionsBuilder<TradingBotDbContext>()
-            .UseNpgsql(Configuration.DataSource);
-        dbContext = new TradingBotDbContext(optionsBuilder.Options, logger);
+        if (!await dbContext.Instruments.AnyAsync(instrument => instrument.Id == 1))
+        {
+            await dbContext.Instruments.AddAsync(new() { Id = 1, Name = "Test instrument" });
+            await dbContext.SaveChangesAsync();
+        }
         await dbContext.Candles.ExecuteDeleteAsync();
     }
 
@@ -56,7 +55,4 @@ public class CandleHistoryCsvStreamTests : IAsyncDisposable
         // "22P04: extra data after last expected column"
         Assert.ThrowsAsync<PostgresException>(async () => await dbStream.CommitAsync(CancellationToken.None));
     }
-
-    public async ValueTask DisposeAsync() =>
-        await dbContext.DisposeAsync();
 }
