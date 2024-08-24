@@ -1,11 +1,11 @@
 # A trading bot
 
-A trading bot for the Tinkoff Invest broker.
+A trading bot for the T-Invest broker.
 
 A work in progress.
 
 ## 1. Prerequisites
-* A Tinkoff Invest [account](https://tinkoff.ru/invest) and an [access token](https://tinkoff.github.io/investAPI/token)
+* A T-Invest [account](https://tbank.ru/invest) and an [access token](https://russianinvestments.github.io/investAPI/token)
 * PostgreSQL
 * Current user's right to create a database in it
 
@@ -21,8 +21,8 @@ Create a `secrets.json` file in the directory `~/.microsoft/usersecrets/TradingB
     "Database": "trading_bot"
   },
 
-  "Tinkoff": {
-    "AccessToken": "your_Tinkoff_Invest_access_token"
+  "TInvest": {
+    "AccessToken": "your_T-Invest_access_token"
   }
 }
 ```

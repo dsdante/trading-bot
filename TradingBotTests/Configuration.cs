@@ -72,11 +72,11 @@ public class Configuration
     private static TradingBotDbContext? dbContext;
 
     [OneTimeSetUp]
-    public async Task OneTimeSetUpAsync() =>
+    public async Task OneTimeSetUp() =>
         await DbContext.Database.EnsureCreatedAsync();
 
     [OneTimeTearDown]
-    public async Task OneTimeTearDownAsync()
+    public async Task OneTimeTearDown()
     {
         loggerFactory?.Dispose();
         if (dbContext != null)

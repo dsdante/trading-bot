@@ -5,7 +5,7 @@ using InstrumentsServiceClient = Tinkoff.InvestApi.V1.InstrumentsService.Instrum
 
 namespace TradingBot;
 
-public class TinkoffService(InvestApiClient tinkoff)
+public class TInvestService(InvestApiClient tInvest)
 {
     private static readonly Func<InstrumentsServiceClient, CancellationToken, Task<IEnumerable<Instrument>>>[] instrumentGetters =
     [
@@ -16,10 +16,10 @@ public class TinkoffService(InvestApiClient tinkoff)
         async (instruments, cancellation) => (await instruments.SharesAsync(cancellation)).Instruments.Select(i => i.ToInstrument()),
     ];
 
-    public async IAsyncEnumerable<Instrument> GetInstruments([EnumeratorCancellation]CancellationToken cancellation)
+    public async IAsyncEnumerable<Instrument> GetInstrumentsAsync([EnumeratorCancellation]CancellationToken cancellation)
     {
         var tasks = instrumentGetters
-            .Select(getter => getter(tinkoff.Instruments, cancellation))
+            .Select(getter => getter(tInvest.Instruments, cancellation))
             .ToList();
 
         while (tasks.Count > 0)

@@ -9,14 +9,15 @@ using TradingBot.Data;
 
 namespace TradingBot;
 
-public class TinkoffHistoryDataService(
+public class TInvestHistoryDataService(
     HttpClient httpClient,
     TradingBotDbContext dbContext,
     ILoggerFactory loggerFactory,
-    ILogger<TinkoffHistoryDataService> logger)
+    ILogger<TInvestHistoryDataService> logger)
 {
     /// <summary> Download candle history and write it to the destination. </summary>
-    /// <returns>(Tinkoff API throttling limit, limit reset timeout)</returns>
+    /// <seealso cref="https://russianinvestments.github.io/investAPI/get_history"/>
+    /// <returns>(T-Invest API throttling limit, limit reset timeout)</returns>
     public async Task<(HttpStatusCode status, int limit, DateTimeOffset limitTimeout)> DownloadCsvAsync(
         Instrument instrument,
         int year,

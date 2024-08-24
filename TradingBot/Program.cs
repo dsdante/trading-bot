@@ -7,13 +7,13 @@ var services = builder.Services;
 var configuration = builder.Configuration;
 
 services.AddTradingBotDatabase(configuration);
-services.AddInvestApiClient((_, settings) => configuration.Bind("Tinkoff", settings));
-services.AddHttpClient<TinkoffHistoryDataService>(httpClient =>
+services.AddInvestApiClient((_, settings) => configuration.Bind("TInvest", settings));
+services.AddHttpClient<TInvestHistoryDataService>(httpClient =>
     httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-        "Bearer", configuration.GetSection("Tinkoff:AccessToken").Get<string>()));
-services.AddScoped<TinkoffService>();
+        "Bearer", configuration.GetSection("TInvest:AccessToken").Get<string>()));
+services.AddScoped<TInvestService>();
 services.AddScoped<HistoryService>();
 services.AddHostedService<Worker>();
 
 var host = builder.Build();
-host.Run();  // calls Worker.ExecuteAsync().
+host.Run();  // runs Worker.RunAsync()
