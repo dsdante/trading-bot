@@ -17,7 +17,10 @@ public class TinkoffHistoryDataService(
 {
     /// <summary> Download candle history and write it to the destination. </summary>
     /// <returns>(Tinkoff API throttling limit, limit reset timeout)</returns>
-    public async Task<(HttpStatusCode status, int limit, DateTimeOffset limitTimeout)> DownloadCsvAsync(Instrument instrument, int year, CancellationToken cancellation)
+    public async Task<(HttpStatusCode status, int limit, DateTimeOffset limitTimeout)> DownloadCsvAsync(
+        Instrument instrument,
+        int year,
+        CancellationToken cancellation)
     {
         ArgumentNullException.ThrowIfNull(instrument, nameof(instrument));
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(year, nameof(year));
@@ -31,7 +34,10 @@ public class TinkoffHistoryDataService(
         var limitTimeout = DateTimeOffset.Now.AddSeconds(response.Headers.Get<double>("x-ratelimit-reset"));
 
         await using var source = await response.Content.ReadAsStreamAsync(cancellation);
-        await using var destination = await CandleHistoryCsvStream.OpenAsync(dbContext.Database.GetConnectionString()!, loggerFactory, cancellation);
+        await using var destination = await CandleHistoryCsvStream.OpenAsync(
+            dbContext.Database.GetConnectionString()!,
+            loggerFactory,
+            cancellation);
 
         var pipe = new Pipe();
         var fillPipeTask = FillPipeAsync(source, pipe.Writer, cancellation);
@@ -65,7 +71,11 @@ public class TinkoffHistoryDataService(
     }
 
     // Read a CSV stream, process it, and write it to the destination.
-    private static async Task<int> ReadPipeAsync(PipeReader source, Stream destination, short instrumentId, CancellationToken cancellation)
+    private static async Task<int> ReadPipeAsync(
+        PipeReader source,
+        Stream destination,
+        short instrumentId,
+        CancellationToken cancellation)
     {
         using var resultOwner = MemoryPool<byte>.Shared.Rent(128);
         var resultBuffer = resultOwner.Memory;
@@ -94,7 +104,10 @@ public class TinkoffHistoryDataService(
     }
 
     // Replace the GUID with the ID, trim the trailing semicolon, and advance the buffer.
-    private static Memory<byte> ProcessLine(ref ReadOnlySequence<byte> readBuffer, Memory<byte> resultBuffer, int idLength)
+    private static Memory<byte> ProcessLine(
+        ref ReadOnlySequence<byte> readBuffer,
+        Memory<byte> resultBuffer,
+        int idLength)
     {
         var endOfLine = readBuffer.PositionOf((byte)'\n') ?? default;
         if (endOfLine.GetObject() == null)

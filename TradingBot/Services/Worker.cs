@@ -17,8 +17,8 @@ public class Worker(IServiceScopeFactory scopeFactory, IHostApplicationLifetime 
             */
 
             var historyService = scope.ServiceProvider.GetRequiredService<HistoryService>();
-            await historyService.UpdateInstruments(cancellation);
-            //await historyService.DownloadHistory(cancellation);
+            //await historyService.UpdateInstruments(cancellation);
+            await historyService.DownloadHistory(cancellation);
 
             lifetime.StopApplication();
         }

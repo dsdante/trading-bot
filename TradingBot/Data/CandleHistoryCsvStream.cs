@@ -4,7 +4,7 @@ using Npgsql;
 namespace TradingBot.Data;
 
 /// <summary> A binary stream accepting ASCII CSV data with candle history </summary>
-/// <remarks>Can be implicitly cast to <see cref="System.IO.Stream"/>.</remarks>
+/// <remarks>Can be implicitly cast to <see cref="Stream"/>.</remarks>
 /// <example><code>
 ///   await using var file = File.OpenRead("candles.csv");
 ///   await using var dbStream = await CandleHistoryCsvStream.OpenAsync(connectionString, cancellationToken);

@@ -24,6 +24,7 @@ public class HistoryService(
         await dbContext.SaveChangesAsync(cancellation);
     }
 
+    /// <summary> Download the complete candle history from Tinkoff API </summary>
     [SuppressMessage("ReSharper", "EntityFramework.UnsupportedServerSideFunctionCall")]
     [SuppressMessage("ReSharper", "VariableHidesOuterVariable")]
     [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression")]
