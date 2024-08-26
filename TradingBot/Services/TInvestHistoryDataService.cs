@@ -28,40 +28,51 @@ public class TInvestHistoryDataService(
 
         var stopwatch = Stopwatch.StartNew();
         var url = $"https://invest-public-api.tinkoff.ru/history-data?figi={instrument.Figi}&year={year}";
-        using var response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellation);
 
-        if (!response.IsSuccessStatusCode)
+        try
         {
-            if (response.StatusCode == HttpStatusCode.TooManyRequests)
+            using var response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellation);
+
+            if (!response.IsSuccessStatusCode)
             {
-                logger.LogError("{assetType} {insturment} ({year}): failed to download with {status}.",
-                    instrument.AssetType, instrument.Name, year, response.StatusCode);
+                if (response.StatusCode == HttpStatusCode.TooManyRequests)
+                {
+                    logger.LogError("{assetType} {instrument} ({year}): failed to download with {status}.",
+                        instrument.AssetType, instrument.Name, year, response.StatusCode);
+                }
+                else if (response.StatusCode != HttpStatusCode.NotFound &&
+                         response.StatusCode != HttpStatusCode.InternalServerError)
+                {
+                    logger.LogWarning("{assetType} {instrument} ({year}): failed to download with {status} from {url}",
+                        instrument.AssetType, instrument.Name, year, response.StatusCode, url);
+                }
+                RateLimitResponse.TryGetFromResponse(response, out var failedRateLimitResponse);
+                return failedRateLimitResponse;
             }
-            else if (response.StatusCode != HttpStatusCode.NotFound)
-            {
-                logger.LogWarning("{assetType} {insturment} ({year}): failed to download with {status} from {url}",
-                    instrument.AssetType, instrument.Name, year, response.StatusCode, url);
-            }
-            RateLimitResponse.TryGetFromResponse(response, out var failedRateLimitResponse);
-            return failedRateLimitResponse;
+
+            await using var source = await response.Content.ReadAsStreamAsync(cancellation);
+            await using var destination = await CandleHistoryCsvStream.OpenAsync(
+                dbContext.Database.GetConnectionString()!,
+                loggerFactory,
+                cancellation);
+
+            var pipe = new Pipe();
+            var fillPipeTask = FillPipeAsync(source, pipe.Writer, cancellation);
+            var candleCount = await ReadPipeAsync(pipe.Reader, destination, instrument.Id, cancellation);
+            await fillPipeTask;
+
+            await destination.CommitAsync(cancellation);
+            logger.LogInformation("{assetType} {instrument} ({year}): downloaded {count} candles in {time:0.###}s",
+                instrument.AssetType, instrument.Name, year, candleCount, stopwatch.Elapsed.TotalSeconds);
+            RateLimitResponse.TryGetFromResponse(response, out var rateLimitResponse);
+            return rateLimitResponse;
         }
-
-        await using var source = await response.Content.ReadAsStreamAsync(cancellation);
-        await using var destination = await CandleHistoryCsvStream.OpenAsync(
-            dbContext.Database.GetConnectionString()!,
-            loggerFactory,
-            cancellation);
-
-        var pipe = new Pipe();
-        var fillPipeTask = FillPipeAsync(source, pipe.Writer, cancellation);
-        var candleCount = await ReadPipeAsync(pipe.Reader, destination, instrument.Id, cancellation);
-        await fillPipeTask;
-
-        await destination.CommitAsync(cancellation);
-        logger.LogInformation("{assetType} {insturment} ({year}): downloaded {count} candles in {time:0.###}s",
-            instrument.AssetType, instrument.Name, year, candleCount, stopwatch.Elapsed.TotalSeconds);
-        RateLimitResponse.TryGetFromResponse(response, out var rateLimitResponse);
-        return rateLimitResponse;
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            logger.LogError("{assetType} {instrument} ({year}) failed to download history from {url}: {message}",
+                instrument.AssetType, instrument.Name, year, url, e.Message);
+            throw;
+        }
     }
 
     // Read all files from a zip archive as a continuous stream.

@@ -47,11 +47,12 @@ namespace TradingBot.Migrations
                     high = table.Column<float>(type: "real", nullable: false),
                     low = table.Column<float>(type: "real", nullable: false),
                     close = table.Column<float>(type: "real", nullable: false),
-                    volume = table.Column<int>(type: "integer", nullable: false)
+                    volume = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_candle", x => new { x.instrument, x.timestamp });
+                    table.CheckConstraint("candle_volume_nonnegative_check", "volume >= 0");
                     table.ForeignKey(
                         name: "fk_candle_instruments_instrument",
                         column: x => x.instrument,

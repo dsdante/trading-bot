@@ -23,6 +23,9 @@ public class TradingBotDbContext(
         var snakeCase = new SnakeCaseNameRewriter(CultureInfo.InvariantCulture);
         foreach (var entity in modelBuilder.Model.GetEntityTypes())
             entity.SetTableName(snakeCase.RewriteName(entity.DisplayName()));
+
+        modelBuilder.Entity<Candle>().ToTable(table =>
+            table.HasCheckConstraint("candle_volume_nonnegative_check", "volume >= 0"));
     }
 
     /// <summary> Add new instruments and update those with existing UIDs </summary>
@@ -63,7 +66,7 @@ public class TradingBotDbContext(
         if (added.Count + updated.Count == 0)
             logger.LogInformation("All instruments are up to date.");
         if (added.Count > 0)
-            logger.LogInformation("{count} instrument(s) added:\n{list}",
+            logger.LogInformation("{count} instrument(s) added:\n{list}",  // TODO: replace with Environment.NewLine?
                 added.Count, string.Join('\n', added.Values.Select(i => $"{i.AssetType} {i.Name}")));
         if (updated.Count > 0)
             logger.LogInformation("{count} instrument(s) updated:\n{list}",

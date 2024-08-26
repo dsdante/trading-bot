@@ -13,7 +13,7 @@ public class Candle
     public float High { get; init; }
     public float Low { get; init; }
     public float Close { get; init; }
-    public int Volume { get; init; }  // TODO: trim to int.MaxValue
+    public long Volume { get; init; }
 
     [DeleteBehavior(DeleteBehavior.Restrict)]
     public required Instrument Instrument { get; init; }

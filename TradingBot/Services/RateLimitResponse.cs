@@ -67,6 +67,19 @@ public readonly struct RateLimitResponse
         Reset = date.AddSeconds(headers.Get<int>("x-ratelimit-reset"));
     }
 
+    /// <summary> Rate limit throttling </summary>
+    /// <param name="callback">An action to invoke before waiting (if occurs)</param>
+    public async Task WaitAsync(Action<TimeSpan>? callback, CancellationToken cancellation)
+    {
+        if (Remaining > 0)
+            return;
+        var rateLimitTimeout = Reset - DateTime.UtcNow;
+        if (rateLimitTimeout <= TimeSpan.Zero)
+            return;
+        callback?.Invoke(rateLimitTimeout);
+        await Task.Delay(rateLimitTimeout, cancellation);
+    }
+
     private RateLimitResponse(HttpStatusCode statusCode, int remaining, DateTime timeout)
     {
         StatusCode = statusCode;

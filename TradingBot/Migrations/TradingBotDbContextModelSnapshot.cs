@@ -17,7 +17,7 @@ namespace TradingBot.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.2")
+                .HasAnnotation("ProductVersion", "8.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "asset_type", new[] { "bond", "currency", "etf", "future", "option", "share" });
@@ -49,14 +49,17 @@ namespace TradingBot.Migrations
                         .HasColumnType("real")
                         .HasColumnName("open");
 
-                    b.Property<int>("Volume")
-                        .HasColumnType("integer")
+                    b.Property<long>("Volume")
+                        .HasColumnType("bigint")
                         .HasColumnName("volume");
 
                     b.HasKey("InstrumentId", "Timestamp")
                         .HasName("pk_candle");
 
-                    b.ToTable("candle", (string)null);
+                    b.ToTable("candle", null, t =>
+                        {
+                            t.HasCheckConstraint("candle_volume_nonnegative_check", "volume >= 0");
+                        });
                 });
 
             modelBuilder.Entity("TradingBot.Data.Instrument", b =>
