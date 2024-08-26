@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http.Headers;
 using Tinkoff.InvestApi.V1;
 using AssetType = TradingBot.Data.AssetType;
@@ -13,15 +14,45 @@ internal static class Extensions
     public static T Get<T>(this HttpHeaders headers, string name)
     {
         Debug.Assert(!string.IsNullOrWhiteSpace(name), "Empty header name.");
-
         if (!headers.TryGetValues(name, out var values))
             throw new HttpIOException(HttpRequestError.InvalidResponse, $"Missing header {name}. Received headers:\n{headers}");
+
         var value = values.First();
 
-        var type = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
+        var type = typeof(T);
+        if (type == typeof(string))
+            return (T)(object)value;
+
+        type = Nullable.GetUnderlyingType(type) ?? type;
         var converter = TypeDescriptor.GetConverter(type);
-        Debug.Assert(converter.CanConvertFrom(typeof(string)), $"Cannot parse type {type.Name}.");
+        Debug.Assert(converter.CanConvertFrom(typeof(string)), $"Cannot parse type {type.Name} from a string.");
         return (T)converter.ConvertFromString(value)!;
+    }
+
+    // Try get a strongly-typed HTTP header value.
+    public static bool TryGet<T>(this HttpHeaders headers, string name, [MaybeNullWhen(false)] out T result)
+    {
+        Debug.Assert(!string.IsNullOrWhiteSpace(name), "Empty header name.");
+        if (!headers.TryGetValues(name, out var values))
+        {
+            result = default;
+            return false;
+        }
+
+        var value = values.First();
+
+        var type = typeof(T);
+        if (type == typeof(string))
+        {
+            result = (T)(object)value;
+            return true;
+        }
+
+        type = Nullable.GetUnderlyingType(type) ?? type;
+        var converter = TypeDescriptor.GetConverter(type);
+        Debug.Assert(converter.CanConvertFrom(typeof(string)), $"Cannot parse type {type.Name} from a string.");
+        result = (T)converter.ConvertFromString(value)!;
+        return true;
     }
 
 

@@ -61,7 +61,7 @@ public class TradingBotDbContext(
         Instruments.UpdateRange(updated.Values);
 
         if (added.Count + updated.Count == 0)
-            logger.LogInformation("All instruments up to date.");
+            logger.LogInformation("All instruments are up to date.");
         if (added.Count > 0)
             logger.LogInformation("{count} instrument(s) added:\n{list}",
                 added.Count, string.Join('\n', added.Values.Select(i => $"{i.AssetType} {i.Name}")));

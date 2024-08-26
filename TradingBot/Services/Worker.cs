@@ -10,7 +10,7 @@ public class Worker(IServiceScopeFactory scopeFactory, IHostApplicationLifetime 
 
         var historyService = services.GetRequiredService<HistoryService>();
         await historyService.UpdateInstrumentsAsync(cancellation);
-        //await historyService.DownloadHistoryAsync(cancellation);
+        await historyService.DownloadHistoryBeginningAsync(cancellation);
     }
 
     // Most services are scoped by default; this is a wrapper that creates a scope for them.

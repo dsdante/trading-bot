@@ -18,7 +18,7 @@ public class TInvestHistoryDataService(
     /// <summary> Download candle history and write it to the destination. </summary>
     /// <seealso cref="https://russianinvestments.github.io/investAPI/get_history"/>
     /// <returns>(T-Invest API throttling limit, limit reset timeout)</returns>
-    public async Task<(HttpStatusCode status, int limit, DateTimeOffset limitTimeout)> DownloadCsvAsync(
+    public async Task<RateLimitResponse> DownloadCsvAsync(
         Instrument instrument,
         int year,
         CancellationToken cancellation)
@@ -29,10 +29,22 @@ public class TInvestHistoryDataService(
         var stopwatch = Stopwatch.StartNew();
         var url = $"https://invest-public-api.tinkoff.ru/history-data?figi={instrument.Figi}&year={year}";
         using var response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellation);
+
         if (!response.IsSuccessStatusCode)
-            return (response.StatusCode, default, default);
-        var limit = response.Headers.Get<int>("x-ratelimit-remaining");
-        var limitTimeout = DateTimeOffset.Now.AddSeconds(response.Headers.Get<double>("x-ratelimit-reset"));
+        {
+            if (response.StatusCode == HttpStatusCode.TooManyRequests)
+            {
+                logger.LogError("{assetType} {insturment} ({year}): failed to download with {status}.",
+                    instrument.AssetType, instrument.Name, year, response.StatusCode);
+            }
+            else if (response.StatusCode != HttpStatusCode.NotFound)
+            {
+                logger.LogWarning("{assetType} {insturment} ({year}): failed to download with {status} from {url}",
+                    instrument.AssetType, instrument.Name, year, response.StatusCode, url);
+            }
+            RateLimitResponse.TryGetFromResponse(response, out var failedRateLimitResponse);
+            return failedRateLimitResponse;
+        }
 
         await using var source = await response.Content.ReadAsStreamAsync(cancellation);
         await using var destination = await CandleHistoryCsvStream.OpenAsync(
@@ -46,9 +58,10 @@ public class TInvestHistoryDataService(
         await fillPipeTask;
 
         await destination.CommitAsync(cancellation);
-        logger.LogInformation("Downloaded {count} candles in {time:F3}s for {instrument} ({year}) from {url}",
-            candleCount, stopwatch.Elapsed.TotalSeconds, instrument.Name, year, url);
-        return (response.StatusCode, limit, limitTimeout);
+        logger.LogInformation("{assetType} {insturment} ({year}): downloaded {count} candles in {time:0.###}s",
+            instrument.AssetType, instrument.Name, year, candleCount, stopwatch.Elapsed.TotalSeconds);
+        RateLimitResponse.TryGetFromResponse(response, out var rateLimitResponse);
+        return rateLimitResponse;
     }
 
     // Read all files from a zip archive as a continuous stream.
