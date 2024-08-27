@@ -48,6 +48,22 @@ public readonly struct RateLimitResponse
     /// <summary> Whether the error code is 2xx </summary>
     public bool IsSuccessStatusCode => (int)StatusCode >= 200 && (int)StatusCode < 300;
 
+    /// <summary> Initialize a RateLimit instance indicating some kind of a problem </summary>
+    public RateLimitResponse(HttpStatusCode statusCode)
+    {
+        StatusCode = statusCode;
+        Remaining = 0;
+        Reset = DateTime.UtcNow.AddSeconds(defaultWindowSeconds);
+    }
+
+    /// <summary> Initialize a RateLimit instance </summary>
+    public RateLimitResponse(HttpStatusCode statusCode, int remaining, DateTime timeout)
+    {
+        StatusCode = statusCode;
+        Remaining = remaining;
+        Reset = timeout;
+    }
+
     /// <summary> Parse rate limits from HTTP headers </summary>
     /// <exception cref="HttpIOException">A required header is missing</exception>
     public RateLimitResponse(HttpResponseMessage response)
@@ -78,13 +94,6 @@ public readonly struct RateLimitResponse
             return;
         callback?.Invoke(rateLimitTimeout);
         await Task.Delay(rateLimitTimeout, cancellation);
-    }
-
-    private RateLimitResponse(HttpStatusCode statusCode, int remaining, DateTime timeout)
-    {
-        StatusCode = statusCode;
-        Remaining = remaining;
-        Reset = timeout;
     }
 
     private string DebuggerDisplay =>

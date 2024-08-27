@@ -49,6 +49,7 @@ public class HistoryService(
                   instrument => instrument.Id,
                   (candle, instrument) => new ValueTuple<Instrument, DateTime>(instrument, candle.timestamp))
             .ToListAsync(cancellation);
+
         if (earliestCandles.Count == 0)
         {
             logger.LogInformation("We already have the beginning of history for all instruments.");
@@ -132,6 +133,7 @@ public class HistoryService(
                   instrument => instrument.Id,
                   (candle, instrument) => new ValueTuple<Instrument, DateTime>(instrument, candle.timestamp))
             .ToListAsync(cancellation);
+
         logger.LogInformation("{instrumentCount} instruments need updating.", latestCandles.Count);
         if (latestCandles.Any(candle => !candle.instrument.HasEarliest1MinCandle))
             logger.LogWarning("We don't have the beginning of history for the instruments:{instrumentList}",
@@ -165,12 +167,11 @@ public class HistoryService(
 
             if (response.IsSuccessStatusCode)
             {
-                yearToday = DateTime.UtcNow.Year;
-                if (year != yearToday)
+                if (year != DateTime.UtcNow.Year)
                 {
                     // Download the current year later in the queue, to allow more data to be included.
-                    priority = year + 1 < yearToday ? Priority.High : Priority.Normal;
-                    queue.Enqueue((instrument, year + 1), Priority.High);
+                    var nextPriority = year + 1 < DateTime.UtcNow.Year ? Priority.High : Priority.Normal;
+                    queue.Enqueue((instrument, year + 1), nextPriority);
                 }
             }
             else if (response.StatusCode == HttpStatusCode.NotFound ||

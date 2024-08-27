@@ -4,14 +4,15 @@ using System.IO.Compression;
 using System.IO.Pipelines;
 using System.Net;
 using System.Text;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Npgsql;
 using TradingBot.Data;
 
 namespace TradingBot;
 
 public class TInvestHistoryDataService(
     HttpClient httpClient,
-    TradingBotDbContext dbContext,
+    IOptions<NpgsqlConnectionStringBuilder> connectionString,
     ILoggerFactory loggerFactory,
     ILogger<TInvestHistoryDataService> logger)
 {
@@ -52,7 +53,7 @@ public class TInvestHistoryDataService(
 
             await using var source = await response.Content.ReadAsStreamAsync(cancellation);
             await using var destination = await CandleHistoryCsvStream.OpenAsync(
-                dbContext.Database.GetConnectionString()!,
+                connectionString.Value.ConnectionString,
                 loggerFactory,
                 cancellation);
 
@@ -71,7 +72,9 @@ public class TInvestHistoryDataService(
         {
             logger.LogError("{assetType} {instrument} ({year}) failed to download history from {url}: {message}",
                 instrument.AssetType, instrument.Name, year, url, e.Message);
-            throw;
+            if (e is TimeoutException)
+                return new RateLimitResponse(HttpStatusCode.GatewayTimeout);
+            return new RateLimitResponse((HttpStatusCode)520);
         }
     }
 
