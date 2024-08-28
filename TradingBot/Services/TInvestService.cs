@@ -5,18 +5,9 @@ using InstrumentsServiceClient = Tinkoff.InvestApi.V1.InstrumentsService.Instrum
 
 namespace TradingBot;
 
-public class TInvestService(InvestApiClient tInvest)
+public class TInvestService(InvestApiClient tInvest) : ITInvestService
 {
-    private static readonly Func<InstrumentsServiceClient, CancellationToken, Task<IEnumerable<Instrument>>>[] instrumentGetters =
-    [
-        async (instruments, cancellation) => (await instruments.BondsAsync(cancellation)).Instruments.Select(i => i.ToInstrument()),
-        async (instruments, cancellation) => (await instruments.CurrenciesAsync(cancellation)).Instruments.Select(i => i.ToInstrument()),
-        async (instruments, cancellation) => (await instruments.EtfsAsync(cancellation)).Instruments.Select(i => i.ToInstrument()),
-        async (instruments, cancellation) => (await instruments.FuturesAsync(cancellation)).Instruments.Select(i => i.ToInstrument()),
-        async (instruments, cancellation) => (await instruments.SharesAsync(cancellation)).Instruments.Select(i => i.ToInstrument()),
-    ];
-
-    public async IAsyncEnumerable<Instrument> GetInstrumentsAsync([EnumeratorCancellation]CancellationToken cancellation)
+    public async IAsyncEnumerable<Instrument> GetInstrumentsAsync([EnumeratorCancellation] CancellationToken cancellation)
     {
         var tasks = instrumentGetters
             .Select(getter => getter(tInvest.Instruments, cancellation))
@@ -30,4 +21,13 @@ public class TInvestService(InvestApiClient tInvest)
             tasks.Remove(task);
         }
     }
+
+    private static readonly Func<InstrumentsServiceClient, CancellationToken, Task<IEnumerable<Instrument>>>[] instrumentGetters =
+    [
+        async (instruments, cancellation) => (await instruments.BondsAsync(cancellation)).Instruments.Select(i => i.ToInstrument()),
+        async (instruments, cancellation) => (await instruments.CurrenciesAsync(cancellation)).Instruments.Select(i => i.ToInstrument()),
+        async (instruments, cancellation) => (await instruments.EtfsAsync(cancellation)).Instruments.Select(i => i.ToInstrument()),
+        async (instruments, cancellation) => (await instruments.FuturesAsync(cancellation)).Instruments.Select(i => i.ToInstrument()),
+        async (instruments, cancellation) => (await instruments.SharesAsync(cancellation)).Instruments.Select(i => i.ToInstrument()),
+    ];
 }

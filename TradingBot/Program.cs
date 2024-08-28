@@ -6,12 +6,12 @@ var builder = Host.CreateApplicationBuilder(args);
 var services = builder.Services;
 var configuration = builder.Configuration;
 
-services.AddTradingBotDatabase(configuration);
+services.AddTradingBotDatabase(configuration, builder.Environment);
 services.AddInvestApiClient((_, settings) => configuration.Bind("TInvest", settings));
-services.AddHttpClient<TInvestHistoryDataService>(httpClient =>
+services.AddHttpClient<ITInvestHistoryDataService, TInvestHistoryDataService>(httpClient =>
     httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
         "Bearer", configuration.GetSection("TInvest:AccessToken").Get<string>()));
-services.AddScoped<TInvestService>();
+services.AddScoped<ITInvestService, TInvestService>();
 services.AddScoped<HistoryService>();
 services.AddHostedService<Worker>();
 

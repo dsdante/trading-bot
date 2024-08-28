@@ -6,8 +6,8 @@ using TradingBot.Data;
 namespace TradingBot;
 
 public class HistoryService(
-    TInvestService tInvest,
-    TInvestHistoryDataService tInvestHistoryData,
+    ITInvestService tInvest,
+    ITInvestHistoryDataService tInvestHistoryData,
     TradingBotDbContext dbContext,
     ILogger<HistoryService> logger)
 {

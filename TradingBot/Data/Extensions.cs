@@ -5,7 +5,10 @@ namespace TradingBot.Data;
 
 public static class Extensions
 {
-    public static IServiceCollection AddTradingBotDatabase(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddTradingBotDatabase(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        IHostEnvironment hostEnvironment)
     {
         var connectionStringConfig = configuration.GetRequiredSection("Database");
         services.Configure<NpgsqlConnectionStringBuilder>(connectionStringConfig);  // for dumping CSVs into the database
@@ -14,6 +17,11 @@ public static class Extensions
         var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
         dataSourceBuilder.MapEnum<AssetType>();
         var dataSource = dataSourceBuilder.Build();
-        return services.AddDbContext<TradingBotDbContext>(builder => builder.UseNpgsql(dataSource));
+        var sensitiveDataLogging = configuration.GetSection("Database:EnableSensitiveDataLogging").Get<bool>();
+        if (sensitiveDataLogging && !hostEnvironment.IsDevelopment())
+            throw new InvalidOperationException("Cannot use EnableSensitiveDataLogging in a non-Development environment.");
+        return services.AddDbContext<TradingBotDbContext>(builder => builder
+            .UseNpgsql(dataSource)
+            .EnableSensitiveDataLogging(sensitiveDataLogging));
     }
 }

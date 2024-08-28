@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace TradingBot.Data;
 
-[SuppressMessage("ReSharper", "EntityFramework.ModelValidation.UnlimitedStringLength")]
 [Index(nameof(Uid), IsUnique = true)]
 public class Instrument : IEquatable<Instrument>
 {

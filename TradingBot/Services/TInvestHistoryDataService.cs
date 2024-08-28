@@ -14,7 +14,7 @@ public class TInvestHistoryDataService(
     HttpClient httpClient,
     IOptions<NpgsqlConnectionStringBuilder> connectionString,
     ILoggerFactory loggerFactory,
-    ILogger<TInvestHistoryDataService> logger)
+    ILogger<TInvestHistoryDataService> logger) : ITInvestHistoryDataService
 {
     /// <summary> Download candle history and write it to the destination. </summary>
     /// <seealso cref="https://russianinvestments.github.io/investAPI/get_history"/>
