@@ -66,10 +66,10 @@ public class TradingBotDbContext(
         if (added.Count + updated.Count == 0)
             logger.LogInformation("All instruments are up to date.");
         if (added.Count > 0)
-            logger.LogInformation("{count} instrument(s) added:\n{list}",  // TODO: replace with Environment.NewLine?
-                added.Count, string.Join('\n', added.Values.Select(i => $"{i.AssetType} {i.Name}")));
+            logger.LogInformation("{count} instrument(s) added:{list}",
+                added.Count, Environment.NewLine + string.Join(Environment.NewLine, added.Values.Select(i => $"{i.AssetType} {i.Name}")));
         if (updated.Count > 0)
-            logger.LogInformation("{count} instrument(s) updated:\n{list}",
-                updated.Count, string.Join('\n', updated.Values.Select(i => $"{i.AssetType} {i.Name}")));
+            logger.LogInformation("{count} instrument(s) updated:{list}",
+                updated.Count, Environment.NewLine + string.Join(Environment.NewLine, updated.Values.Select(i => $"{i.AssetType} {i.Name}")));
     }
 }

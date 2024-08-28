@@ -52,7 +52,7 @@ public class HistoryService(
 
         if (earliestCandles.Count == 0)
         {
-            logger.LogInformation("We already have the beginning of history for all instruments.");
+            logger.LogInformation("No instruments are missing history beginning.");
             return;
         }
         logger.LogInformation("{instrumentCount} instruments are missing history beginning.", earliestCandles.Count);
@@ -111,10 +111,11 @@ public class HistoryService(
     public async Task UpdateHistoryAsync(CancellationToken cancellation)
     {
         var stopwatch = Stopwatch.StartNew();
-        logger.LogInformation("Started updating the recent history. Looking for instruments requiring a history update...");
+        logger.LogInformation("Started updating the recent history. Looking for the instruments requiring a history update...");
 
         // Find the latest candles for each instrument.
-        DateTime startOfYear = new(DateTime.UtcNow.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        var yearToday = DateTime.UtcNow.Year;
+        DateTime startOfYear = new(yearToday, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         List<(Instrument instrument, DateTime latest)> latestCandles = await dbContext.Instruments
             .Where(instrument => instrument.Figi != null && historyAssetTypes.Contains(instrument.AssetType))
             .SelectMany(instrument => instrument.Candles.Select(candle => (DateTime?)candle.Timestamp).DefaultIfEmpty(),
@@ -134,7 +135,6 @@ public class HistoryService(
                   (candle, instrument) => new ValueTuple<Instrument, DateTime>(instrument, candle.timestamp))
             .ToListAsync(cancellation);
 
-        logger.LogInformation("{instrumentCount} instruments need updating.", latestCandles.Count);
         if (latestCandles.Any(candle => !candle.instrument.HasEarliest1MinCandle))
             logger.LogWarning("We don't have the beginning of history for the instruments:{instrumentList}",
                 Environment.NewLine + string.Join(Environment.NewLine, latestCandles
@@ -145,13 +145,12 @@ public class HistoryService(
                     .Select(instrument => $"{instrument.AssetType} {instrument.Name}")));
         if (latestCandles.Count == 0)
         {
-            logger.LogInformation("All candle history is up to date.");
+            logger.LogInformation("No instruments need updating.");
             return;
         }
-        logger.LogInformation("{instrumentCount} instruments are missing history beginning.", latestCandles.Count);
+        logger.LogInformation("{instrumentCount} instruments need updating.", latestCandles.Count);
 
         PriorityQueue<(Instrument instrument, int year), Priority> queue = new(latestCandles.Count);
-        var yearToday = DateTime.UtcNow.Year;
         foreach (var (instrument, timestamp) in latestCandles)
         {
             // Download earlier years with a higher priority.

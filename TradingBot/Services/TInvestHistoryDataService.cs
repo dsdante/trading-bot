@@ -59,12 +59,20 @@ public class TInvestHistoryDataService(
 
             var pipe = new Pipe();
             var fillPipeTask = FillPipeAsync(source, pipe.Writer, cancellation);
-            var candleCount = await ReadPipeAsync(pipe.Reader, destination, instrument.Id, cancellation);
+            var readRowCount = await ReadPipeAsync(pipe.Reader, destination, instrument.Id, cancellation);
             await fillPipeTask;
 
-            await destination.CommitAsync(cancellation);
-            logger.LogInformation("{assetType} {instrument} ({year}): downloaded {count} candles in {time:0.###}s",
-                instrument.AssetType, instrument.Name, year, candleCount, stopwatch.Elapsed.TotalSeconds);
+            int addedRowCount = await destination.CommitAsync(cancellation);
+            if (addedRowCount == -1 || addedRowCount == readRowCount)
+            {
+                logger.LogInformation("{assetType} {instrument} ({year}): {addedCount} candles added in {time:0.###}s",
+                    instrument.AssetType, instrument.Name, year, addedRowCount, stopwatch.Elapsed.TotalSeconds);
+            }
+            else
+            {
+                logger.LogInformation("{assetType} {instrument} ({year}): {addedCount}/{readCount} candles added in {time:0.###}s",
+                    instrument.AssetType, instrument.Name, year, addedRowCount, readRowCount, stopwatch.Elapsed.TotalSeconds);
+            }
             RateLimitResponse.TryGetFromResponse(response, out var rateLimitResponse);
             return rateLimitResponse;
         }
@@ -99,6 +107,7 @@ public class TInvestHistoryDataService(
     }
 
     // Read a CSV stream, process it, and write it to the destination.
+    // Returns read candle count.
     private static async Task<int> ReadPipeAsync(
         PipeReader source,
         Stream destination,

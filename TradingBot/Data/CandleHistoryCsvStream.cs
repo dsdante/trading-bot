@@ -71,20 +71,23 @@ internal class CandleHistoryCsvStream : IAsyncDisposable
         this.loggerFactory = loggerFactory;
     }
 
-    /// <summary> Commit the changes to the database and close the stream</summary>
+    /// <summary> Commit the changes to the database and close the stream </summary>
     /// <remarks>Futher writes are not possible.</remarks>
-    public async Task CommitAsync(CancellationToken cancellation)
+    /// <returns>The number of rows added or -1 if unknown</returns>
+    public async Task<int> CommitAsync(CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
 
+        int addedRowCount;
         await writer.DisposeAsync();
         await using (var command = connection.CreateCommand())
         {
             command.CommandText = $"INSERT INTO candle SELECT * FROM {tempTableName} ON CONFLICT DO NOTHING;";
-            await command.ExecuteNonQueryAsync(cancellation);
+            addedRowCount = await command.ExecuteNonQueryAsync(cancellation);
         }
         await transaction.CommitAsync(cancellation);
         commited = true;
+        return addedRowCount;
     }
 
     /// <summary> Roll back any uncommited changes and close the database connection </summary>

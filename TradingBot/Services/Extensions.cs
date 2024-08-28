@@ -15,7 +15,8 @@ internal static class Extensions
     {
         Debug.Assert(!string.IsNullOrWhiteSpace(name), "Empty header name.");
         if (!headers.TryGetValues(name, out var values))
-            throw new HttpIOException(HttpRequestError.InvalidResponse, $"Missing header {name}. Received headers:\n{headers}");
+            throw new HttpIOException(HttpRequestError.InvalidResponse,
+                $"Missing header {name}. Received headers:{Environment.NewLine}{headers}");
 
         var value = values.First();
 
