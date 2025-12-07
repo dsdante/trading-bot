@@ -1,5 +1,5 @@
-using System.Diagnostics;
 using Npgsql;
+using System.Diagnostics;
 
 namespace TradingBot.Data;
 

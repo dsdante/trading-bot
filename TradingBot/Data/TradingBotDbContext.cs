@@ -1,13 +1,14 @@
-using System.Diagnostics;
-using System.Globalization;
 using EFCore.NamingConventions.Internal;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
+using System.Globalization;
 
 namespace TradingBot.Data;
 
 public class TradingBotDbContext(
-    DbContextOptions<TradingBotDbContext> options,
-    ILogger<TradingBotDbContext> logger) : DbContext(options)
+        DbContextOptions<TradingBotDbContext> options,
+        ILogger<TradingBotDbContext> logger)
+    : DbContext(options)
 {
     public DbSet<Instrument> Instruments { get; init; } = null!;
     public DbSet<Candle> Candles { get; init; } = null!;

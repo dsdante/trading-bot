@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using NUnit.Framework;
 using System.Net.Http.Headers;
 using TradingBot;
 using TradingBot.Data;

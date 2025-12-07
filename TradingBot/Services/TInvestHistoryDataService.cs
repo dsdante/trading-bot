@@ -1,11 +1,11 @@
+using Microsoft.Extensions.Options;
+using Npgsql;
 using System.Buffers;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.IO.Pipelines;
 using System.Net;
 using System.Text;
-using Microsoft.Extensions.Options;
-using Npgsql;
 using TradingBot.Data;
 
 namespace TradingBot;

@@ -3,7 +3,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Npgsql;
-using NUnit.Framework;
 using System.Data.Common;
 using TradingBot.Data;
 

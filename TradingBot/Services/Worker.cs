@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace TradingBot;
 
 public class Worker(IServiceScopeFactory scopeFactory, IHostApplicationLifetime lifetime) : BackgroundService
@@ -24,7 +26,7 @@ public class Worker(IServiceScopeFactory scopeFactory, IHostApplicationLifetime 
             await RunAsync(scope.ServiceProvider, cancellation);
             lifetime.StopApplication();
         }
-        catch (Exception e)
+        catch (Exception e) when (!Debugger.IsAttached)
         {
             // Re-throw the underlying OperationCanceledException.
             if (e is OperationCanceledException)

@@ -16,3 +16,6 @@ dotnet_naming_rule.fields.severity = suggestion
 
 # IDE0130: Namespace does not match folder structure
 dotnet_style_namespace_match_folder = false
+
+# https://marketplace.visualstudio.com/items?itemName=PaulHarrington.EditorGuidelines
+guidelines = 120 0.1px solid gray

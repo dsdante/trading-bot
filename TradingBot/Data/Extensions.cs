@@ -12,16 +12,14 @@ public static class Extensions
     {
         var connectionStringConfig = configuration.GetRequiredSection("Database");
         services.Configure<NpgsqlConnectionStringBuilder>(connectionStringConfig);  // for dumping CSVs into the database
-
         var connectionString = connectionStringConfig.Get<NpgsqlConnectionStringBuilder>()!.ConnectionString;
-        var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
-        dataSourceBuilder.MapEnum<AssetType>();
-        var dataSource = dataSourceBuilder.Build();
+
         var sensitiveDataLogging = configuration.GetSection("Database:EnableSensitiveDataLogging").Get<bool>();
         if (sensitiveDataLogging && !hostEnvironment.IsDevelopment())
             throw new InvalidOperationException("Cannot use EnableSensitiveDataLogging in a non-Development environment.");
+
         return services.AddDbContext<TradingBotDbContext>(builder => builder
-            .UseNpgsql(dataSource)
+            .UseNpgsql(connectionString, o => o.MapEnum<AssetType>())
             .EnableSensitiveDataLogging(sensitiveDataLogging));
     }
 }
