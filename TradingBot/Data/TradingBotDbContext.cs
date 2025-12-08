@@ -5,7 +5,7 @@ using System.Globalization;
 
 namespace TradingBot.Data;
 
-public class TradingBotDbContext(
+public partial class TradingBotDbContext(
         DbContextOptions<TradingBotDbContext> options,
         ILogger<TradingBotDbContext> logger)
     : DbContext(options)
@@ -64,13 +64,19 @@ public class TradingBotDbContext(
         await Instruments.AddRangeAsync(added.Values, cancellation);
         Instruments.UpdateRange(updated.Values);
 
+#pragma warning disable CA1873  // TODO: Remove when fixed https://github.com/dotnet/roslyn-analyzers/issues/7690
         if (added.Count + updated.Count == 0)
             logger.LogInformation("All instruments are up to date.");
-        if (added.Count > 0)
-            logger.LogInformation("{count} instrument(s) added:{list}",
-                added.Count, Environment.NewLine + string.Join(Environment.NewLine, added.Values.Select(i => $"{i.AssetType} {i.Name}")));
+        if (logger.IsEnabled(LogLevel.Information) && added.Count > 0)
+            LogAddedInstruments(added.Count, added.Values.Select(i => $"{i.AssetType} {i.Name}"));
         if (updated.Count > 0)
-            logger.LogInformation("{count} instrument(s) updated:{list}",
-                updated.Count, Environment.NewLine + string.Join(Environment.NewLine, updated.Values.Select(i => $"{i.AssetType} {i.Name}")));
+            LogUpdatedInstruments(updated.Count, updated.Values.Select(i => $"{i.AssetType} {i.Name}"));
+#pragma warning restore CA1873
     }
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "{count} instrument(s) added: {instruments}")]
+    private partial void LogAddedInstruments(int count, IEnumerable<string> instruments);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "{count} instrument(s) updated: {instruments}")]
+    private partial void LogUpdatedInstruments(int count, IEnumerable<string> instruments);
 }

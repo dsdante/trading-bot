@@ -5,7 +5,7 @@ using TradingBot.Data;
 
 namespace TradingBot;
 
-public class HistoryService(
+public partial class HistoryService(
     ITInvestService tInvest,
     ITInvestHistoryDataService tInvestHistoryData,
     TradingBotDbContext dbContext,
@@ -59,7 +59,7 @@ public class HistoryService(
             logger.LogInformation("No instruments are missing history beginning.");
             return;
         }
-        logger.LogInformation("{instrumentCount} instruments are missing history beginning.", earliestCandles.Count);
+        LogBeginningOfHistoryNeeded(earliestCandles.Count);
 
         PriorityQueue<(Instrument instrument, int year), Priority> queue = new(earliestCandles.Count);
         int yearToday = DateTime.UtcNow.Year;
@@ -79,13 +79,10 @@ public class HistoryService(
                 // Prioritize keeping downloading the same instrument.
                 queue.Enqueue((instrument, year - 1), Priority.High);
             }
-            else if (
-                response.StatusCode == HttpStatusCode.NotFound ||
-                response.StatusCode == HttpStatusCode.InternalServerError)
+            else if (response.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.InternalServerError)
             {
                 // Reached the beginning of the history.
-                logger.LogInformation("{assetType} {instrument} ({year}): reached beginning of history.",
-                    instrument.AssetType, instrument.Name, year + 1);
+                LogBeginningOfHistory(instrument.AssetType, instrument.Name, year + 1);
                 await dbContext.Instruments
                     .Where(i => i.Id == instrument.Id)
                     .ExecuteUpdateAsync(
@@ -102,8 +99,7 @@ public class HistoryService(
                 else
                 {
                     // No more second chances.
-                    logger.LogError("{assetType} {instrument} ({year}): second chance failed with {status}.",
-                        instrument.AssetType, instrument.Name, year, response.StatusCode);
+                    LogSecondChanceFailed(instrument.AssetType, instrument.Name, year, response.StatusCode);
                 }
             }
 
@@ -111,7 +107,7 @@ public class HistoryService(
                 await response.WaitAsync(LogRateLimit, cancellation);
         }
 
-        logger.LogInformation(@"Finished downloading history beginning in {time:h\:mm\:ss}.", stopwatch.Elapsed);
+        LogFinishedDownloading(stopwatch.Elapsed);
     }
 
     /// <summary> Update the recent candle history from T-Invest API </summary>
@@ -137,7 +133,7 @@ public class HistoryService(
             })
             .Where(candle => candle.timestamp < DateTime.UtcNow.AddDays(-1))
             .OrderBy(candle => candle.timestamp)
-            // TODO: Replace Max+Join with MaxBy once it's supported in EF. https://github.com/dotnet/efcore/issues/25566
+            // TODO: Replace Max+Join with MaxBy when it's supported in EF. https://github.com/dotnet/efcore/issues/25566
             .Join(
                 dbContext.Instruments,
                 candle => candle.instrumentId,
@@ -145,20 +141,23 @@ public class HistoryService(
                 (candle, instrument) => new ValueTuple<Instrument, DateTime>(instrument, candle.timestamp))
             .ToListAsync(cancellation);
 
-        if (latestCandles.Any(candle => !candle.instrument.HasEarliest1MinCandle))
-            logger.LogWarning("We don't have the beginning of history for the instruments:{instrumentList}",
-                Environment.NewLine + string.Join(Environment.NewLine, latestCandles
-                    .Select(candle => candle.instrument)
-                    .Where(instrument => !instrument.HasEarliest1MinCandle)
-                    .OrderBy(instrument => instrument.AssetType)
-                    .ThenBy(instrument => instrument.Name)
-                    .Select(instrument => $"{instrument.AssetType} {instrument.Name}")));
         if (latestCandles.Count == 0)
         {
             logger.LogInformation("No instruments need updating.");
             return;
         }
-        logger.LogInformation("{instrumentCount} instruments need updating.", latestCandles.Count);
+
+#pragma warning disable CA1873  // TODO: Remove when fixed https://github.com/dotnet/roslyn-analyzers/issues/7690
+        if (latestCandles.Any(candle => !candle.instrument.HasEarliest1MinCandle))
+            LogBeginningOfHistoryNotFound(latestCandles
+                .Select(candle => candle.instrument)
+                .Where(instrument => !instrument.HasEarliest1MinCandle)
+                .OrderBy(instrument => instrument.AssetType)
+                .ThenBy(instrument => instrument.Name)
+                .Select(instrument => $"{instrument.AssetType} {instrument.Name}"));
+#pragma warning restore CA1873
+
+        LogInstrumentsNeedUpdating(latestCandles.Count);
 
         PriorityQueue<(Instrument instrument, int year), Priority> queue = new(latestCandles.Count);
         foreach (var (instrument, timestamp) in latestCandles)
@@ -183,12 +182,10 @@ public class HistoryService(
                     queue.Enqueue((instrument, year + 1), nextPriority);
                 }
             }
-            else if (response.StatusCode == HttpStatusCode.NotFound ||
-                     response.StatusCode == HttpStatusCode.InternalServerError)
+            else if (response.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.InternalServerError)
             {
                 // History ends here.
-                logger.LogInformation("{assetType} {instrument} ({year}): no more history.",
-                    instrument.AssetType, instrument.Name, year);
+                LogEndOfHistory(instrument.AssetType, instrument.Name, year);
             }
             else
             {
@@ -200,8 +197,7 @@ public class HistoryService(
                 else
                 {
                     // No more second chances.
-                    logger.LogError("{assetType} {instrument} ({year}): second chance failed with {status}.",
-                        instrument.AssetType, instrument.Name, year, response.StatusCode);
+                    LogSecondChanceFailed(instrument.AssetType, instrument.Name, year, response.StatusCode);
                 }
             }
 
@@ -209,7 +205,7 @@ public class HistoryService(
                 await response.WaitAsync(LogRateLimit, cancellation);
         }
 
-        logger.LogInformation(@"Finished updating the recent history in {time:h\:mm\:ss}.", stopwatch.Elapsed);
+        LogFinishedHistoryUpdate(stopwatch.Elapsed);
     }
 
     private enum Priority
@@ -227,6 +223,30 @@ public class HistoryService(
         AssetType.Etf
     ];
 
-    private void LogRateLimit(TimeSpan timeout) =>
-        logger.LogDebug("Rate limit reached, waiting for {reset:0.#} seconds.", timeout.TotalSeconds);
+    [LoggerMessage(Level = LogLevel.Information, Message = "{instrumentCount} instrument(s) need updating.")]
+    private partial void LogInstrumentsNeedUpdating(int instrumentCount);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "{instrumentCount} instrument(s) are missing history beginning yet.")]
+    private partial void LogBeginningOfHistoryNeeded(int instrumentCount);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "History beginning is not found for the instruments: {instruments}")]
+    private partial void LogBeginningOfHistoryNotFound(IEnumerable<string> instruments);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "{assetType} {instrument} ({year}): reached history beginning.")]
+    private partial void LogBeginningOfHistory(AssetType assetType, string instrument, int year);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "{assetType} {instrument} ({year}): no more history.")]
+    private partial void LogEndOfHistory(AssetType assetType, string instrument, int year);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = @"Rate limit reached, waiting for {time:s\\.f} seconds.")]
+    private partial void LogRateLimit(TimeSpan time);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "{assetType} {instrument} ({year}): second chance failed with {status}.")]
+    private partial void LogSecondChanceFailed(AssetType assetType, string instrument, int year, HttpStatusCode status);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = @"Finished downloading history beginning in {time:h\\:mm\\:ss}.")]
+    private partial void LogFinishedDownloading(TimeSpan time);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = @"Finished updating the recent history in {time:h\\:mm\\:ss}.")]
+    private partial void LogFinishedHistoryUpdate(TimeSpan time);
 }

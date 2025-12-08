@@ -10,11 +10,12 @@ using TradingBot.Data;
 
 namespace TradingBot;
 
-public class TInvestHistoryDataService(
-    HttpClient httpClient,
-    IOptions<NpgsqlConnectionStringBuilder> connectionString,
-    ILoggerFactory loggerFactory,
-    ILogger<TInvestHistoryDataService> logger) : ITInvestHistoryDataService
+public partial class TInvestHistoryDataService(
+        HttpClient httpClient,
+        IOptions<NpgsqlConnectionStringBuilder> connectionString,
+        ILoggerFactory loggerFactory,
+        ILogger<TInvestHistoryDataService> logger)
+    : ITInvestHistoryDataService
 {
     /// <summary> Download candle history and write it to the destination. </summary>
     /// <seealso cref="https://russianinvestments.github.io/investAPI/get_history"/>
@@ -37,16 +38,9 @@ public class TInvestHistoryDataService(
             if (!response.IsSuccessStatusCode)
             {
                 if (response.StatusCode == HttpStatusCode.TooManyRequests)
-                {
-                    logger.LogError("{assetType} {instrument} ({year}): failed to download with {status}.",
-                        instrument.AssetType, instrument.Name, year, response.StatusCode);
-                }
-                else if (response.StatusCode != HttpStatusCode.NotFound &&
-                         response.StatusCode != HttpStatusCode.InternalServerError)
-                {
-                    logger.LogWarning("{assetType} {instrument} ({year}): failed to download with {status} from {url}",
-                        instrument.AssetType, instrument.Name, year, response.StatusCode, url);
-                }
+                    LogDownloadFailed(instrument.AssetType, instrument.Name, year, response.StatusCode);
+                else if (response.StatusCode is not HttpStatusCode.NotFound and not HttpStatusCode.InternalServerError)
+                    LogDownloadFromUrlFailed(instrument.AssetType, instrument.Name, year, response.StatusCode, url);
                 RateLimitResponse.TryGetFromResponse(response, out var failedRateLimitResponse);
                 return failedRateLimitResponse;
             }
@@ -65,33 +59,30 @@ public class TInvestHistoryDataService(
             int addedRowCount = await destination.CommitAsync(cancellation);
             if (addedRowCount == -1 || addedRowCount == readRowCount)
             {
-                logger.LogInformation(
-                    "{assetType} {instrument} ({year}): {addedCount} candles added in {time:0.###}s",
+                LogAllCandlesAdded(
                     instrument.AssetType,
                     instrument.Name,
                     year,
                     addedRowCount,
-                    stopwatch.Elapsed.TotalSeconds);
+                    stopwatch.Elapsed);
             }
             else
             {
-                logger.LogInformation(
-                    "{assetType} {instrument} ({year}): {addedCount}/{readCount} candles added in {time:0.###}s",
+                LogSomeCandlesAdded(
                     instrument.AssetType,
                     instrument.Name,
                     year,
                     addedRowCount,
                     readRowCount,
-                    stopwatch.Elapsed.TotalSeconds);
+                    stopwatch.Elapsed);
             }
             RateLimitResponse.TryGetFromResponse(response, out var rateLimitResponse);
             return rateLimitResponse;
         }
-        catch (Exception e) when (e is not OperationCanceledException)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            logger.LogError("{assetType} {instrument} ({year}) failed to download history from {url}: {message}",
-                instrument.AssetType, instrument.Name, year, url, e.Message);
-            if (e is TimeoutException)
+            LogDownloadFailedWithException(instrument.AssetType, instrument.Name, year, url, ex);
+            if (ex is TimeoutException)
                 return new(HttpStatusCode.GatewayTimeout);
             return new((HttpStatusCode)520);
         }
@@ -174,4 +165,19 @@ public class TInvestHistoryDataService(
         readBuffer = readBuffer.Slice(readBuffer.GetPosition(1, endOfLine));
         return resultBuffer[..resultLength];
     }
+
+    [LoggerMessage(Level = LogLevel.Information, Message = @"{assetType} {instrument} ({year}): {addedCount}/{readCount} candles added in {time:s\\.fff}s")]
+    private partial void LogSomeCandlesAdded(AssetType assetType, string instrument, int year, int addedCount, int readCount, TimeSpan time);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = @"{assetType} {instrument} ({year}): {count} candles added in {time:s\\.fff}s")]
+    private partial void LogAllCandlesAdded(AssetType assetType, string instrument, int year, int count, TimeSpan time);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "{assetType} {instrument} ({year}): failed to download with {status}.")]
+    private partial void LogDownloadFailed(AssetType assetType, string instrument, int year, HttpStatusCode status);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "{assetType} {instrument} ({year}): failed to download with {status} from {url}")]
+    private partial void LogDownloadFromUrlFailed(AssetType assetType, string instrument, int year, HttpStatusCode status, string url);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "{assetType} {instrument} ({year}) failed to download history from {url}")]
+    private partial void LogDownloadFailedWithException(AssetType assetType, string instrument, int year, string url, Exception ex);
 }

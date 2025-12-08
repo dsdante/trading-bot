@@ -46,7 +46,7 @@ public readonly struct RateLimitResponse
     public DateTime Reset { get; }
 
     /// <summary> Whether the error code is 2xx </summary>
-    public bool IsSuccessStatusCode => (int)StatusCode >= 200 && (int)StatusCode < 300;
+    public bool IsSuccessStatusCode => (int)StatusCode is >= 200 and < 300;
 
     /// <summary> Initialize a RateLimit instance indicating some kind of a problem </summary>
     public RateLimitResponse(HttpStatusCode statusCode)
@@ -89,9 +89,11 @@ public readonly struct RateLimitResponse
     {
         if (Remaining > 0)
             return;
+
         var rateLimitTimeout = Reset - DateTime.UtcNow;
         if (rateLimitTimeout <= TimeSpan.Zero)
             return;
+
         callback?.Invoke(rateLimitTimeout);
         await Task.Delay(rateLimitTimeout, cancellation);
     }
