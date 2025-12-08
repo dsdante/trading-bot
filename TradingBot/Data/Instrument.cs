@@ -29,14 +29,15 @@ public class Instrument : IEquatable<Instrument>
             return true;
 
         // Compare all properties except the auto-generated Id.
-        return Uid == other.Uid &&
-               Figi == other.Figi &&
-               Name == other.Name &&
-               AssetType == other.AssetType &&
-               Lot == other.Lot &&
-               Otc == other.Otc &&
-               ForQualInvestor == other.ForQualInvestor &&
-               ApiTradeAvailable == other.ApiTradeAvailable;
+        return
+            Uid == other.Uid &&
+            Figi == other.Figi &&
+            Name == other.Name &&
+            AssetType == other.AssetType &&
+            Lot == other.Lot &&
+            Otc == other.Otc &&
+            ForQualInvestor == other.ForQualInvestor &&
+            ApiTradeAvailable == other.ApiTradeAvailable;
     }
 
     public override bool Equals(object? obj) =>
@@ -53,7 +54,7 @@ public class Instrument : IEquatable<Instrument>
 
     public override int GetHashCode()
     {
-        var hashCode = new HashCode();
+        HashCode hashCode = new();
         hashCode.Add(Uid);
         hashCode.Add(Figi);
         hashCode.Add(Name);

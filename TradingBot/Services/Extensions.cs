@@ -63,7 +63,7 @@ internal static class Extensions
     public static Instrument ToInstrument(this Bond response) =>
         new()
         {
-            Uid = new Guid(response.Uid),
+            Uid = new(response.Uid),
             Figi = response.Figi,
             Name = response.Name,
             AssetType = AssetType.Bond,
@@ -76,7 +76,7 @@ internal static class Extensions
     public static Instrument ToInstrument(this Currency response) =>
         new()
         {
-            Uid = new Guid(response.Uid),
+            Uid = new(response.Uid),
             Figi = response.Figi,
             Name = response.Name,
             AssetType = AssetType.Currency,
@@ -89,7 +89,7 @@ internal static class Extensions
     public static Instrument ToInstrument(this Etf response) =>
         new()
         {
-            Uid = new Guid(response.Uid),
+            Uid = new(response.Uid),
             Figi = response.Figi,
             Name = response.Name,
             AssetType = AssetType.Etf,
@@ -102,7 +102,7 @@ internal static class Extensions
     public static Instrument ToInstrument(this Future response) =>
         new()
         {
-            Uid = new Guid(response.Uid),
+            Uid = new(response.Uid),
             Figi = response.Figi,
             Name = response.Name,
             AssetType = AssetType.Future,
@@ -115,7 +115,7 @@ internal static class Extensions
     public static Instrument ToInstrument(this Option response) =>
         new()
         {
-            Uid = new Guid(response.Uid),
+            Uid = new(response.Uid),
             Figi = null,
             Name = response.Name,
             AssetType = AssetType.Option,
@@ -128,7 +128,7 @@ internal static class Extensions
     public static Instrument ToInstrument(this Share response) =>
         new()
         {
-            Uid = new Guid(response.Uid),
+            Uid = new(response.Uid),
             Figi = response.Figi,
             Name = response.Name,
             AssetType = AssetType.Share,

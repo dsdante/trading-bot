@@ -24,11 +24,14 @@ internal class CandleHistoryCsvStream : IAsyncDisposable
     private bool commited;
 
     /// <summary> Begin a database transaction and open a data import stream </summary>
-    public static async Task<CandleHistoryCsvStream> OpenAsync(string connectionString, ILoggerFactory? loggerFactory, CancellationToken cancellation)
+    public static async Task<CandleHistoryCsvStream> OpenAsync(
+        string connectionString,
+        ILoggerFactory? loggerFactory,
+        CancellationToken cancellation)
     {
         Debug.Assert(connectionString != null);
         cancellation.ThrowIfCancellationRequested();
-        var connection = new NpgsqlConnection(connectionString);
+        NpgsqlConnection connection = new(connectionString);
         NpgsqlTransaction? transaction = null;
 
         try
@@ -45,11 +48,11 @@ internal class CandleHistoryCsvStream : IAsyncDisposable
 
             var writer = await connection.BeginTextImportAsync(
                 // The column order is OCHLV, not OHLCV.
-                $"COPY {tempTableName} (instrument, timestamp, open, close, high, low, volume) FROM STDIN CSV DELIMITER ';' ENCODING 'SQL_ASCII';",
+                $"COPY {tempTableName} (instrument, timestamp, open, close, high, low, volume) " +
+                $"FROM STDIN CSV DELIMITER ';' ENCODING 'SQL_ASCII';",
                 cancellation);
-            Debug.Assert(writer is StreamWriter);
 
-            return new CandleHistoryCsvStream(connection, transaction, (StreamWriter)writer, tempTableName, loggerFactory);
+            return new(connection, transaction, writer, tempTableName, loggerFactory);
         }
         catch
         {
@@ -62,7 +65,12 @@ internal class CandleHistoryCsvStream : IAsyncDisposable
 
     public static implicit operator Stream(CandleHistoryCsvStream self) => self.BaseStream;
 
-    private CandleHistoryCsvStream(NpgsqlConnection connection, NpgsqlTransaction transaction, StreamWriter writer, string tempTableName, ILoggerFactory? loggerFactory)
+    private CandleHistoryCsvStream(
+        NpgsqlConnection connection,
+        NpgsqlTransaction transaction,
+        StreamWriter writer,
+        string tempTableName,
+        ILoggerFactory? loggerFactory)
     {
         this.connection = connection;
         this.transaction = transaction;

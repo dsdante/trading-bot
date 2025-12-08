@@ -12,7 +12,8 @@ internal class TInvestServiceMock : ITInvestService
 
     public TInvestServiceMock() => Reset();
 
-    public async IAsyncEnumerable<Instrument> GetInstrumentsAsync([EnumeratorCancellation] CancellationToken _ = default)
+    public async IAsyncEnumerable<Instrument> GetInstrumentsAsync(
+        [EnumeratorCancellation] CancellationToken _ = default)
     {
         foreach (var instrument in Instruments)
             yield return await ValueTask.FromResult(instrument);
@@ -22,7 +23,7 @@ internal class TInvestServiceMock : ITInvestService
     {
         DefaultInstrument = new Instrument
         {
-            Uid = new Guid("81575098-df8a-45c4-82dc-1b64374dcfdb"),
+            Uid = new("81575098-df8a-45c4-82dc-1b64374dcfdb"),
             Figi = "BBG000BBJQV0",
             Name = "NVIDIA",
             AssetType = AssetType.Share,

@@ -21,7 +21,7 @@ public class TradingBotDbContext(
         modelBuilder.HasPostgresEnum<AssetType>();
 
         // Singular table names
-        var snakeCase = new SnakeCaseNameRewriter(CultureInfo.InvariantCulture);
+        SnakeCaseNameRewriter snakeCase = new(CultureInfo.InvariantCulture);
         foreach (var entity in modelBuilder.Model.GetEntityTypes())
             entity.SetTableName(snakeCase.RewriteName(entity.DisplayName()));
 
@@ -33,8 +33,8 @@ public class TradingBotDbContext(
     public async Task UpsertRangeAsync(IEnumerable<Instrument> instruments, CancellationToken cancellation)
     {
         var oldInstruments = await Instruments.ToDictionaryAsync(i => i.Uid, i => i, cancellation);
-        var added = new Dictionary<Guid, Instrument>();
-        var updated = new Dictionary<Guid, Instrument>();
+        Dictionary<Guid, Instrument> added = [];
+        Dictionary<Guid, Instrument> updated = [];
 
         foreach (var instrument in instruments)
         {

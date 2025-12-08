@@ -16,7 +16,7 @@ public class HistoryService(
     {
         logger.LogInformation("Updating the instruments...");
 
-        var instruments = new List<Instrument>();
+        List<Instrument> instruments = [];
         await foreach (var instrument in tInvest.GetInstrumentsAsync(cancellation))
             instruments.Add(instrument);
 
@@ -28,15 +28,18 @@ public class HistoryService(
     public async Task DownloadHistoryBeginningAsync(CancellationToken cancellation)
     {
         var stopwatch = Stopwatch.StartNew();
-        logger.LogInformation("Started downloading history beginning. Looking for instruments missing history beginning...");
+        logger.LogInformation(
+            "Started downloading history beginning. Looking for instruments missing history beginning...");
 
         // Find the earliest candles of the instruments for which we don't have the beginning of history.
         List<(Instrument instrument, DateTime earliest)> earliestCandles = await dbContext.Instruments
-            .Where(instrument => !instrument.HasEarliest1MinCandle &&
-                                 instrument.Figi != null &&
-                                 historyAssetTypes.Contains(instrument.AssetType))
-            .SelectMany(instrument => instrument.Candles.Select(candle => candle.Timestamp).DefaultIfEmpty(),
-                        (instrument, timestamp) => new { instrument, timestamp })
+            .Where(instrument =>
+                !instrument.HasEarliest1MinCandle &&
+                instrument.Figi != null &&
+                historyAssetTypes.Contains(instrument.AssetType))
+            .SelectMany(
+                instrument => instrument.Candles.Select(candle => candle.Timestamp).DefaultIfEmpty(),
+                (instrument, timestamp) => new { instrument, timestamp })
             .GroupBy(candle => candle.instrument.Id)
             .Select(group => new
             {
@@ -44,10 +47,11 @@ public class HistoryService(
                 timestamp = group.Min(candle => candle.timestamp),
             })
             // TODO: Replace Min+Join with MinBy once it's supported in EF. https://github.com/dotnet/efcore/issues/25566
-            .Join(dbContext.Instruments,
-                  candle => candle.instrumentId,
-                  instrument => instrument.Id,
-                  (candle, instrument) => new ValueTuple<Instrument, DateTime>(instrument, candle.timestamp))
+            .Join(
+                dbContext.Instruments,
+                candle => candle.instrumentId,
+                instrument => instrument.Id,
+                (candle, instrument) => new ValueTuple<Instrument, DateTime>(instrument, candle.timestamp))
             .ToListAsync(cancellation);
 
         if (earliestCandles.Count == 0)
@@ -75,15 +79,18 @@ public class HistoryService(
                 // Prioritize keeping downloading the same instrument.
                 queue.Enqueue((instrument, year - 1), Priority.High);
             }
-            else if (response.StatusCode == HttpStatusCode.NotFound ||
-                     response.StatusCode == HttpStatusCode.InternalServerError)
+            else if (
+                response.StatusCode == HttpStatusCode.NotFound ||
+                response.StatusCode == HttpStatusCode.InternalServerError)
             {
                 // Reached the beginning of the history.
                 logger.LogInformation("{assetType} {instrument} ({year}): reached beginning of history.",
                     instrument.AssetType, instrument.Name, year + 1);
                 await dbContext.Instruments
                     .Where(i => i.Id == instrument.Id)
-                    .ExecuteUpdateAsync(setters => setters.SetProperty(i => i.HasEarliest1MinCandle, true), cancellation);
+                    .ExecuteUpdateAsync(
+                        setters => setters.SetProperty(i => i.HasEarliest1MinCandle, true),
+                        cancellation);
             }
             else
             {
@@ -111,15 +118,17 @@ public class HistoryService(
     public async Task UpdateHistoryAsync(CancellationToken cancellation)
     {
         var stopwatch = Stopwatch.StartNew();
-        logger.LogInformation("Started updating the recent history. Looking for the instruments requiring a history update...");
+        logger.LogInformation(
+            "Started updating the recent history. Looking for the instruments requiring a history update...");
 
         // Find the latest candles for each instrument.
         var yearToday = DateTime.UtcNow.Year;
         DateTime startOfYear = new(yearToday, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         List<(Instrument instrument, DateTime latest)> latestCandles = await dbContext.Instruments
             .Where(instrument => instrument.Figi != null && historyAssetTypes.Contains(instrument.AssetType))
-            .SelectMany(instrument => instrument.Candles.Select(candle => (DateTime?)candle.Timestamp).DefaultIfEmpty(),
-                        (instrument, timestamp) => new { instrument, timestamp })
+            .SelectMany(
+                instrument => instrument.Candles.Select(candle => (DateTime?)candle.Timestamp).DefaultIfEmpty(),
+                (instrument, timestamp) => new { instrument, timestamp })
             .GroupBy(candle => candle.instrument.Id)
             .Select(group => new
             {
@@ -129,10 +138,11 @@ public class HistoryService(
             .Where(candle => candle.timestamp < DateTime.UtcNow.AddDays(-1))
             .OrderBy(candle => candle.timestamp)
             // TODO: Replace Max+Join with MaxBy once it's supported in EF. https://github.com/dotnet/efcore/issues/25566
-            .Join(dbContext.Instruments,
-                  candle => candle.instrumentId,
-                  instrument => instrument.Id,
-                  (candle, instrument) => new ValueTuple<Instrument, DateTime>(instrument, candle.timestamp))
+            .Join(
+                dbContext.Instruments,
+                candle => candle.instrumentId,
+                instrument => instrument.Id,
+                (candle, instrument) => new ValueTuple<Instrument, DateTime>(instrument, candle.timestamp))
             .ToListAsync(cancellation);
 
         if (latestCandles.Any(candle => !candle.instrument.HasEarliest1MinCandle))

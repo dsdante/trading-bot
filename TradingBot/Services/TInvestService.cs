@@ -7,7 +7,8 @@ namespace TradingBot;
 
 public class TInvestService(InvestApiClient tInvest) : ITInvestService
 {
-    public async IAsyncEnumerable<Instrument> GetInstrumentsAsync([EnumeratorCancellation] CancellationToken cancellation)
+    public async IAsyncEnumerable<Instrument> GetInstrumentsAsync(
+        [EnumeratorCancellation] CancellationToken cancellation)
     {
         var tasks = instrumentGetters
             .Select(getter => getter(tInvest.Instruments, cancellation))

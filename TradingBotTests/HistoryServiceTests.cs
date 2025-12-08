@@ -17,10 +17,11 @@ public class HistoryServiceTests
     [OneTimeSetUp]
     public void OneTimeSetUp()
     {
-        history = new(tInvestService,
-                      tInvestHistoryData,
-                      dbContext,
-                      Configuration.LoggerFactory.CreateLogger<HistoryService>());
+        history = new(
+            tInvestService,
+            tInvestHistoryData,
+            dbContext,
+            Configuration.LoggerFactory.CreateLogger<HistoryService>());
     }
 
     [OneTimeTearDown]
@@ -57,7 +58,9 @@ public class HistoryServiceTests
         await history.DownloadHistoryBeginningAsync(CancellationToken.None);
 
         // Without the current year, but plus one for the 404 check.
-        var expected = Enumerable.Range(DateTime.UtcNow.Year - tInvestHistoryData.HistoryYears, tInvestHistoryData.HistoryYears)
+        var expected = Enumerable.Range(
+                DateTime.UtcNow.Year - tInvestHistoryData.HistoryYears,
+                tInvestHistoryData.HistoryYears)
             .Reverse()
             .Select(year => (instrument, year));
         var actual = tInvestHistoryData.Requests;

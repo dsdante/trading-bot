@@ -16,10 +16,13 @@ public static class Extensions
 
         var sensitiveDataLogging = configuration.GetSection("Database:EnableSensitiveDataLogging").Get<bool>();
         if (sensitiveDataLogging && !hostEnvironment.IsDevelopment())
-            throw new InvalidOperationException("Cannot use EnableSensitiveDataLogging in a non-Development environment.");
+            throw new InvalidOperationException(
+                "Can only use EnableSensitiveDataLogging in the Development environment.");
 
         return services.AddDbContext<TradingBotDbContext>(builder => builder
-            .UseNpgsql(connectionString, o => o.MapEnum<AssetType>())
+            .UseNpgsql(
+                connectionString,
+                options => options.MapEnum<AssetType>())
             .EnableSensitiveDataLogging(sensitiveDataLogging));
     }
 }

@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Net.Http.Headers;
 using TradingBot;
 using TradingBot.Data;
 
@@ -17,7 +16,7 @@ public class TInvestHistoryDataServiceTests
     [OneTimeSetUp]
     public void OneTimeSetUp()
     {
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Configuration.TInvestToken);
+        httpClient.DefaultRequestHeaders.Authorization = new("Bearer", Configuration.TInvestToken);
         tInvestHistoryData = new(
             httpClient,
             Configuration.ConnectionStringBuilder,

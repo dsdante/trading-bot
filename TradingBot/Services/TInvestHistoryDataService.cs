@@ -57,7 +57,7 @@ public class TInvestHistoryDataService(
                 loggerFactory,
                 cancellation);
 
-            var pipe = new Pipe();
+            Pipe pipe = new();
             var fillPipeTask = FillPipeAsync(source, pipe.Writer, cancellation);
             var readRowCount = await ReadPipeAsync(pipe.Reader, destination, instrument.Id, cancellation);
             await fillPipeTask;
@@ -65,13 +65,24 @@ public class TInvestHistoryDataService(
             int addedRowCount = await destination.CommitAsync(cancellation);
             if (addedRowCount == -1 || addedRowCount == readRowCount)
             {
-                logger.LogInformation("{assetType} {instrument} ({year}): {addedCount} candles added in {time:0.###}s",
-                    instrument.AssetType, instrument.Name, year, addedRowCount, stopwatch.Elapsed.TotalSeconds);
+                logger.LogInformation(
+                    "{assetType} {instrument} ({year}): {addedCount} candles added in {time:0.###}s",
+                    instrument.AssetType,
+                    instrument.Name,
+                    year,
+                    addedRowCount,
+                    stopwatch.Elapsed.TotalSeconds);
             }
             else
             {
-                logger.LogInformation("{assetType} {instrument} ({year}): {addedCount}/{readCount} candles added in {time:0.###}s",
-                    instrument.AssetType, instrument.Name, year, addedRowCount, readRowCount, stopwatch.Elapsed.TotalSeconds);
+                logger.LogInformation(
+                    "{assetType} {instrument} ({year}): {addedCount}/{readCount} candles added in {time:0.###}s",
+                    instrument.AssetType,
+                    instrument.Name,
+                    year,
+                    addedRowCount,
+                    readRowCount,
+                    stopwatch.Elapsed.TotalSeconds);
             }
             RateLimitResponse.TryGetFromResponse(response, out var rateLimitResponse);
             return rateLimitResponse;
@@ -81,15 +92,15 @@ public class TInvestHistoryDataService(
             logger.LogError("{assetType} {instrument} ({year}) failed to download history from {url}: {message}",
                 instrument.AssetType, instrument.Name, year, url, e.Message);
             if (e is TimeoutException)
-                return new RateLimitResponse(HttpStatusCode.GatewayTimeout);
-            return new RateLimitResponse((HttpStatusCode)520);
+                return new(HttpStatusCode.GatewayTimeout);
+            return new((HttpStatusCode)520);
         }
     }
 
     // Read all files from a zip archive as a continuous stream.
     private static async Task FillPipeAsync(Stream source, PipeWriter destination, CancellationToken cancellation)
     {
-        using var archive = new ZipArchive(source);
+        using ZipArchive archive = new(source);
         foreach (var entry in archive.Entries)
         {
             await using var stream = entry.Open();
