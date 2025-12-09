@@ -7,10 +7,11 @@ namespace TradingBot.Data;
 public class Instrument : IEquatable<Instrument>
 {
     public short Id { get; init; }
-    public Guid Uid { get; init; }
-    public string? Figi { get; set; }
-    public required string Name { get; set; }
     public AssetType AssetType { get; set; }
+    public required string Name { get; set; }
+    public string? Ticker { get; set; }
+    public string? Figi { get; set; }
+    public Guid Uid { get; init; }
     public int Lot { get; set; }
     [Column("otc_flag")] public bool Otc { get; set; }
     [Column("for_qual_investor_flag")] public bool ForQualInvestor { get; set; }
@@ -30,10 +31,11 @@ public class Instrument : IEquatable<Instrument>
 
         // Compare all properties except the auto-generated Id.
         return
-            Uid == other.Uid &&
-            Figi == other.Figi &&
-            Name == other.Name &&
             AssetType == other.AssetType &&
+            Name == other.Name &&
+            Ticker == other.Ticker &&
+            Figi == other.Figi &&
+            Uid == other.Uid &&
             Lot == other.Lot &&
             Otc == other.Otc &&
             ForQualInvestor == other.ForQualInvestor &&
@@ -55,10 +57,11 @@ public class Instrument : IEquatable<Instrument>
     public override int GetHashCode()
     {
         HashCode hashCode = new();
-        hashCode.Add(Uid);
-        hashCode.Add(Figi);
-        hashCode.Add(Name);
         hashCode.Add(AssetType);
+        hashCode.Add(Name);
+        hashCode.Add(Ticker);
+        hashCode.Add(Figi);
+        hashCode.Add(Uid);
         hashCode.Add(Lot);
         hashCode.Add(Otc);
         hashCode.Add(ForQualInvestor);

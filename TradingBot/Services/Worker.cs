@@ -26,7 +26,7 @@ public class Worker(IServiceScopeFactory scopeFactory, IHostApplicationLifetime 
             await RunAsync(scope.ServiceProvider, cancellation);
             lifetime.StopApplication();
         }
-        catch (Exception ex) when (!Debugger.IsAttached)
+        catch (Exception ex) when (!Debugger.IsAttached || ex is OperationCanceledException)
         {
             // Re-throw the underlying OperationCanceledException.
             if (ex is OperationCanceledException)

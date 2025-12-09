@@ -63,10 +63,11 @@ internal static class Extensions
     public static Instrument ToInstrument(this Bond response) =>
         new()
         {
-            Uid = new(response.Uid),
-            Figi = response.Figi,
-            Name = response.Name,
             AssetType = AssetType.Bond,
+            Name = response.Name,
+            Ticker = response.Ticker,
+            Figi = response.Figi,
+            Uid = new(response.Uid),
             Lot = response.Lot,
             Otc = response.OtcFlag,
             ForQualInvestor = response.ForQualInvestorFlag,
@@ -76,10 +77,11 @@ internal static class Extensions
     public static Instrument ToInstrument(this Currency response) =>
         new()
         {
-            Uid = new(response.Uid),
-            Figi = response.Figi,
-            Name = response.Name,
             AssetType = AssetType.Currency,
+            Name = response.Name,
+            Ticker = response.Ticker,
+            Figi = response.Figi,
+            Uid = new(response.Uid),
             Lot = response.Lot,
             Otc = response.OtcFlag,
             ForQualInvestor = response.ForQualInvestorFlag,
@@ -89,10 +91,11 @@ internal static class Extensions
     public static Instrument ToInstrument(this Etf response) =>
         new()
         {
-            Uid = new(response.Uid),
-            Figi = response.Figi,
-            Name = response.Name,
             AssetType = AssetType.Etf,
+            Name = response.Name,
+            Ticker = response.Ticker,
+            Figi = response.Figi,
+            Uid = new(response.Uid),
             Lot = response.Lot,
             Otc = response.OtcFlag,
             ForQualInvestor = response.ForQualInvestorFlag,
@@ -102,10 +105,11 @@ internal static class Extensions
     public static Instrument ToInstrument(this Future response) =>
         new()
         {
-            Uid = new(response.Uid),
-            Figi = response.Figi,
-            Name = response.Name,
             AssetType = AssetType.Future,
+            Name = response.Name,
+            Ticker = response.Ticker,
+            Figi = response.Figi,
+            Uid = new(response.Uid),
             Lot = response.Lot,
             Otc = response.OtcFlag,
             ForQualInvestor = response.ForQualInvestorFlag,
@@ -115,10 +119,11 @@ internal static class Extensions
     public static Instrument ToInstrument(this Option response) =>
         new()
         {
-            Uid = new(response.Uid),
-            Figi = null,
-            Name = response.Name,
             AssetType = AssetType.Option,
+            Name = response.Name,
+            Ticker = response.Ticker,
+            Figi = null,
+            Uid = new(response.Uid),
             Lot = response.Lot,
             Otc = response.OtcFlag,
             ForQualInvestor = response.ForQualInvestorFlag,
@@ -128,10 +133,11 @@ internal static class Extensions
     public static Instrument ToInstrument(this Share response) =>
         new()
         {
-            Uid = new(response.Uid),
-            Figi = response.Figi,
-            Name = response.Name,
             AssetType = AssetType.Share,
+            Name = response.Name,
+            Ticker = response.Ticker,
+            Figi = response.Figi,
+            Uid = new(response.Uid),
             Lot = response.Lot,
             Otc = response.OtcFlag,
             ForQualInvestor = response.ForQualInvestorFlag,

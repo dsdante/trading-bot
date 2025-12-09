@@ -22,10 +22,11 @@ namespace TradingBot.Migrations
                 {
                     id = table.Column<short>(type: "smallint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    uid = table.Column<Guid>(type: "uuid", nullable: false),
-                    figi = table.Column<string>(type: "text", nullable: true),
-                    name = table.Column<string>(type: "text", nullable: false),
                     asset_type = table.Column<AssetType>(type: "asset_type", nullable: false),
+                    name = table.Column<string>(type: "text", nullable: false),
+                    ticker = table.Column<string>(type: "text", nullable: true),
+                    figi = table.Column<string>(type: "text", nullable: true),
+                    uid = table.Column<Guid>(type: "uuid", nullable: false),
                     lot = table.Column<int>(type: "integer", nullable: false),
                     otc_flag = table.Column<bool>(type: "boolean", nullable: false),
                     for_qual_investor_flag = table.Column<bool>(type: "boolean", nullable: false),

@@ -23,10 +23,11 @@ internal class TInvestServiceMock : ITInvestService
     {
         DefaultInstrument = new Instrument
         {
-            Uid = new("81575098-df8a-45c4-82dc-1b64374dcfdb"),
-            Figi = "BBG000BBJQV0",
-            Name = "NVIDIA",
             AssetType = AssetType.Share,
+            Name = "NVIDIA",
+            Ticker = "NVDA",
+            Figi = "BBG000BBJQV0",
+            Uid = new("81575098-df8a-45c4-82dc-1b64374dcfdb"),
             Lot = 1,
             Otc = false,
             ForQualInvestor = true,

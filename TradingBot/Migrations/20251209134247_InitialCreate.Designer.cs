@@ -12,7 +12,7 @@ using TradingBot.Data;
 namespace TradingBot.Migrations
 {
     [DbContext(typeof(TradingBotDbContext))]
-    [Migration("20240827085717_InitialCreate")]
+    [Migration("20251209134247_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -20,7 +20,7 @@ namespace TradingBot.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.4")
+                .HasAnnotation("ProductVersion", "10.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "asset_type", new[] { "bond", "currency", "etf", "future", "option", "share" });
@@ -106,6 +106,10 @@ namespace TradingBot.Migrations
                     b.Property<bool>("Otc")
                         .HasColumnType("boolean")
                         .HasColumnName("otc_flag");
+
+                    b.Property<string>("Ticker")
+                        .HasColumnType("text")
+                        .HasColumnName("ticker");
 
                     b.Property<Guid>("Uid")
                         .HasColumnType("uuid")

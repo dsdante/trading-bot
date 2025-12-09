@@ -42,20 +42,21 @@ public partial class TradingBotDbContext(
             {
                 if (oldInstrument == instrument)
                     continue;
-                oldInstrument.Figi = instrument.Figi;
-                oldInstrument.Name = instrument.Name;
                 oldInstrument.AssetType = instrument.AssetType;
+                oldInstrument.Name = instrument.Name;
+                oldInstrument.Ticker = instrument.Ticker;
+                oldInstrument.Figi = instrument.Figi;
                 oldInstrument.Lot = instrument.Lot;
                 oldInstrument.Otc = instrument.Otc;
                 oldInstrument.ForQualInvestor = instrument.ForQualInvestor;
                 oldInstrument.ApiTradeAvailable = instrument.ApiTradeAvailable;
                 oldInstrument.HasEarliest1MinCandle |= instrument.HasEarliest1MinCandle;
-                updated[instrument.Uid] = oldInstrument;
+                updated.Add(instrument.Uid, oldInstrument);
             }
             else
             {
                 Debug.Assert(instrument.Id == 0, "Cannot upsert instruments with a specified (non-zero) ID.");
-                added[instrument.Uid] = instrument;
+                added.Add(instrument.Uid, instrument);
             }
         }
 
