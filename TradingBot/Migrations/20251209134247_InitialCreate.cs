@@ -53,9 +53,30 @@ namespace TradingBot.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_candle", x => new { x.instrument, x.timestamp });
-                    table.CheckConstraint("candle_volume_nonnegative_check", "volume >= 0");
+                    table.CheckConstraint("candle_close_check", "close BETWEEN low AND high");
+                    table.CheckConstraint("candle_open_check", "open BETWEEN low AND high");
+                    table.CheckConstraint("candle_volume_check", "volume >= 0");
                     table.ForeignKey(
                         name: "fk_candle_instruments_instrument",
+                        column: x => x.instrument,
+                        principalTable: "instrument",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "split",
+                columns: table => new
+                {
+                    instrument = table.Column<short>(type: "smallint", nullable: false),
+                    timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    split = table.Column<float>(type: "real", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_split", x => new { x.instrument, x.timestamp });
+                    table.ForeignKey(
+                        name: "fk_split_instrument_instrument",
                         column: x => x.instrument,
                         principalTable: "instrument",
                         principalColumn: "id",
@@ -74,6 +95,9 @@ namespace TradingBot.Migrations
         {
             migrationBuilder.DropTable(
                 name: "candle");
+
+            migrationBuilder.DropTable(
+                name: "split");
 
             migrationBuilder.DropTable(
                 name: "instrument");

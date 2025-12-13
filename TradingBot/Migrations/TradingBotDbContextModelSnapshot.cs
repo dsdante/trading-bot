@@ -58,7 +58,11 @@ namespace TradingBot.Migrations
 
                     b.ToTable("candle", null, t =>
                         {
-                            t.HasCheckConstraint("candle_volume_nonnegative_check", "volume >= 0");
+                            t.HasCheckConstraint("candle_close_check", "close BETWEEN low AND high");
+
+                            t.HasCheckConstraint("candle_open_check", "open BETWEEN low AND high");
+
+                            t.HasCheckConstraint("candle_volume_check", "volume >= 0");
                         });
                 });
 
@@ -122,6 +126,26 @@ namespace TradingBot.Migrations
                     b.ToTable("instrument", (string)null);
                 });
 
+            modelBuilder.Entity("TradingBot.Data.Split", b =>
+                {
+                    b.Property<short>("InstrumentId")
+                        .HasColumnType("smallint")
+                        .HasColumnName("instrument");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("timestamp");
+
+                    b.Property<float>("SplitFactor")
+                        .HasColumnType("real")
+                        .HasColumnName("split");
+
+                    b.HasKey("InstrumentId", "Timestamp")
+                        .HasName("pk_split");
+
+                    b.ToTable("split", (string)null);
+                });
+
             modelBuilder.Entity("TradingBot.Data.Candle", b =>
                 {
                     b.HasOne("TradingBot.Data.Instrument", "Instrument")
@@ -130,6 +154,18 @@ namespace TradingBot.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_candle_instruments_instrument");
+
+                    b.Navigation("Instrument");
+                });
+
+            modelBuilder.Entity("TradingBot.Data.Split", b =>
+                {
+                    b.HasOne("TradingBot.Data.Instrument", "Instrument")
+                        .WithMany()
+                        .HasForeignKey("InstrumentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_split_instrument_instrument");
 
                     b.Navigation("Instrument");
                 });

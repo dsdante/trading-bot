@@ -10,8 +10,9 @@ public partial class TradingBotDbContext(
         ILogger<TradingBotDbContext> logger)
     : DbContext(options)
 {
-    public DbSet<Instrument> Instruments { get; init; } = null!;
-    public DbSet<Candle> Candles { get; init; } = null!;
+    public DbSet<Instrument> Instruments { get; init; }
+    public DbSet<Candle> Candles { get; init; }
+    public DbSet<Split> Splits { get; init; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) =>
         optionsBuilder.UseSnakeCaseNamingConvention();
@@ -26,7 +27,11 @@ public partial class TradingBotDbContext(
             entity.SetTableName(snakeCase.RewriteName(entity.DisplayName()));
 
         modelBuilder.Entity<Candle>().ToTable(table =>
-            table.HasCheckConstraint("candle_volume_nonnegative_check", "volume >= 0"));
+        {
+            table.HasCheckConstraint("candle_open_check", "open BETWEEN low AND high");
+            table.HasCheckConstraint("candle_close_check", "close BETWEEN low AND high");
+            table.HasCheckConstraint("candle_volume_check", "volume >= 0");
+        });
     }
 
     /// <summary> Add new instruments and update those with existing UIDs </summary>
