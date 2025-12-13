@@ -36,6 +36,7 @@ public class Configuration
         Assert.That(connectionStringBuilder.Database, Is.Not.WhiteSpace, "Connection string is not set.");
         Assert.That(connectionStringBuilder.Database, Is.Not.EqualTo("trading_bot"),
             "Do not run tests on the production database.");
+
         ConnectionStringBuilder = Options.Create(connectionStringBuilder);
         ConnectionString = connectionStringBuilder.ConnectionString;
 
@@ -45,6 +46,7 @@ public class Configuration
                 ConnectionString,
                 options => options.MapEnum<AssetType>())
             .EnableSensitiveDataLogging();
+
         using (TradingBotDbContext dbContext = new(DbContextOptionsBuilder.Options, dbContextLogger))
             await dbContext.Database.EnsureCreatedAsync();
 

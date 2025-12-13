@@ -66,17 +66,21 @@ public partial class TradingBotDbContext(
         }
 
         // TODO: Race condition
-
-        await Instruments.AddRangeAsync(added.Values, cancellation);
-        Instruments.UpdateRange(updated.Values);
+        if (added.Count > 0)
+            await Instruments.AddRangeAsync(added.Values, cancellation);
+        if (updated.Count > 0)
+            Instruments.UpdateRange(updated.Values);
 
 #pragma warning disable CA1873  // TODO: Remove when fixed https://github.com/dotnet/roslyn-analyzers/issues/7690
-        if (added.Count + updated.Count == 0)
-            logger.LogInformation("All instruments are up to date.");
-        if (logger.IsEnabled(LogLevel.Information) && added.Count > 0)
-            LogAddedInstruments(added.Count, added.Values.Select(i => $"{i.AssetType} {i.Name}"));
-        if (updated.Count > 0)
-            LogUpdatedInstruments(updated.Count, updated.Values.Select(i => $"{i.AssetType} {i.Name}"));
+        if (logger.IsEnabled(LogLevel.Information))
+        {
+            if (added.Count + updated.Count == 0)
+                logger.LogInformation("All instruments are up to date.");
+            if (added.Count > 0)
+                LogAddedInstruments(added.Count, added.Values.Select(i => $"{i.AssetType} {i.Name}"));
+            if (updated.Count > 0)
+                LogUpdatedInstruments(updated.Count, updated.Values.Select(i => $"{i.AssetType} {i.Name}"));
+        }
 #pragma warning restore CA1873
     }
 

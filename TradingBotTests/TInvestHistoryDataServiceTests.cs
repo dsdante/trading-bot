@@ -43,9 +43,11 @@ public class TInvestHistoryDataServiceTests
     {
         var instrument = new Instrument
         {
+            AssetType = AssetType.Share,
             Name = "NVIDIA",
             Figi = "BBG000BBJQV0",
         };
+
         dbContext.Instruments.Add(instrument);
         await dbContext.SaveChangesAsync();
 

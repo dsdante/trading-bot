@@ -15,7 +15,11 @@ public readonly struct RateLimitResponse
 
         /*
         if (!headers.TryGet("Date", out string? dateString) ||
-            !DateTime.TryParse(dateString, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out var date))
+            !DateTime.TryParse(
+                dateString,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.AdjustToUniversal,
+                out var date))
         {
             date = DateTime.UtcNow;
             success = false;
@@ -73,9 +77,10 @@ public readonly struct RateLimitResponse
         Remaining = headers.Get<int>("x-ratelimit-remaining");
 
         /*
-        var date = DateTime.Parse(headers.Get<string>("Date"),
-                                  CultureInfo.InvariantCulture,
-                                  DateTimeStyles.AdjustToUniversal);
+        var date = DateTime.Parse(
+            headers.Get<string>("Date"),
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.AdjustToUniversal);
         */
         // T-Invest may return TooManyRequests if we rely on the Date header.
         var date = DateTime.UtcNow;

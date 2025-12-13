@@ -41,6 +41,7 @@ public partial class TInvestHistoryDataService(
                     LogDownloadFailed(instrument.AssetType, instrument.Name, year, response.StatusCode);
                 else if (response.StatusCode is not HttpStatusCode.NotFound and not HttpStatusCode.InternalServerError)
                     LogDownloadFromUrlFailed(instrument.AssetType, instrument.Name, year, response.StatusCode, url);
+
                 RateLimitResponse.TryGetFromResponse(response, out var failedRateLimitResponse);
                 return failedRateLimitResponse;
             }
@@ -76,6 +77,7 @@ public partial class TInvestHistoryDataService(
                     readRowCount,
                     stopwatch.Elapsed);
             }
+
             RateLimitResponse.TryGetFromResponse(response, out var rateLimitResponse);
             return rateLimitResponse;
         }
@@ -92,19 +94,23 @@ public partial class TInvestHistoryDataService(
     private static async Task FillPipeAsync(Stream source, PipeWriter destination, CancellationToken cancellation)
     {
         using ZipArchive archive = new(source);
+
         foreach (var entry in archive.Entries)
         {
             await using var stream = entry.Open();
+
             while (true)
             {
                 var buffer = destination.GetMemory();
                 var readCount = await stream.ReadAsync(buffer, cancellation);
                 if (readCount == 0)
                     break;
+
                 destination.Advance(readCount);
                 await destination.FlushAsync(cancellation);
             }
         }
+
         await destination.CompleteAsync();
     }
 
@@ -118,14 +124,18 @@ public partial class TInvestHistoryDataService(
     {
         using var resultOwner = MemoryPool<byte>.Shared.Rent(128);
         var resultBuffer = resultOwner.Memory;
+
         // Populate the beginning of the result buffer with the instrument ID.
-        var idLength = Encoding.ASCII.GetBytes(instrumentId.ToString(), resultBuffer.Span);
+        // We need ASCII, but UTF-8 will do for an integer.
+        instrumentId.TryFormat(resultBuffer.Span, out int idLength);
+
         var candleCount = 0;
 
         while (true)
         {
             var readResult = await source.ReadAsync(cancellation);
             var readBuffer = readResult.Buffer;
+
             while (true)
             {
                 var line = ProcessLine(ref readBuffer, resultBuffer, idLength);
@@ -134,6 +144,7 @@ public partial class TInvestHistoryDataService(
                 await destination.WriteAsync(line, cancellation);
                 candleCount++;
             }
+
             source.AdvanceTo(readBuffer.Start, readBuffer.End);
             if (readResult.IsCompleted)
                 break;
@@ -158,8 +169,10 @@ public partial class TInvestHistoryDataService(
         if (resultBuffer.Length < resultLength)
             throw new InternalBufferOverflowException($"CSV line longer than {resultBuffer.Length} characters: " +
                 Encoding.ASCII.GetString(readBuffer.Slice(0, readBuffer.GetPosition(1, line.End))));
-        line.CopyTo(resultBuffer[idLength..].Span);
-        resultBuffer.Span[resultLength - 1] = (byte)'\n';
+
+        var resultSpan = resultBuffer.Span;
+        line.CopyTo(resultSpan[idLength..]);
+        resultSpan[resultLength - 1] = (byte)'\n';
 
         // Advance the buffer.
         readBuffer = readBuffer.Slice(readBuffer.GetPosition(1, endOfLine));

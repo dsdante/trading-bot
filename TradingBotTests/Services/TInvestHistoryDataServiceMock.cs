@@ -13,9 +13,10 @@ internal class TInvestHistoryDataServiceMock : ITInvestHistoryDataService
     public Task<RateLimitResponse> DownloadCsvAsync(Instrument instrument, int year, CancellationToken _ = default)
     {
         Requests.Add((instrument, year));
-        HttpStatusCode status;
         int lastYear = DateTime.UtcNow.Year;
         int firstYear = lastYear - HistoryYears + 1;
+
+        HttpStatusCode status;
         if (YearServerErrors.Contains(year))
         {
             status = HttpStatusCode.GatewayTimeout;
@@ -29,6 +30,7 @@ internal class TInvestHistoryDataServiceMock : ITInvestHistoryDataService
         {
             status = HttpStatusCode.NotFound;
         }
+
         return Task.FromResult(new RateLimitResponse(status, 1, default));
     }
 

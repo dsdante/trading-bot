@@ -121,7 +121,9 @@ public partial class HistoryService(
         var yearToday = DateTime.UtcNow.Year;
         DateTime startOfYear = new(yearToday, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         List<(Instrument instrument, DateTime latest)> latestCandles = await dbContext.Instruments
-            .Where(instrument => instrument.Figi != null && historyAssetTypes.Contains(instrument.AssetType))
+            .Where(
+                instrument => instrument.Figi != null &&
+                historyAssetTypes.Contains(instrument.AssetType))
             .SelectMany(
                 instrument => instrument.Candles.Select(candle => (DateTime?)candle.Timestamp).DefaultIfEmpty(),
                 (instrument, timestamp) => new { instrument, timestamp })
@@ -149,12 +151,14 @@ public partial class HistoryService(
 
 #pragma warning disable CA1873  // TODO: Remove when fixed https://github.com/dotnet/roslyn-analyzers/issues/7690
         if (latestCandles.Any(candle => !candle.instrument.HasEarliest1MinCandle))
+        {
             LogBeginningOfHistoryNotFound(latestCandles
                 .Select(candle => candle.instrument)
                 .Where(instrument => !instrument.HasEarliest1MinCandle)
                 .OrderBy(instrument => instrument.AssetType)
                 .ThenBy(instrument => instrument.Name)
                 .Select(instrument => $"{instrument.AssetType} {instrument.Name}"));
+        }
 #pragma warning restore CA1873
 
         LogInstrumentsNeedUpdating(latestCandles.Count);

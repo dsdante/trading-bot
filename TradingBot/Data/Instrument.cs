@@ -42,8 +42,7 @@ public class Instrument : IEquatable<Instrument>
             ApiTradeAvailable == other.ApiTradeAvailable;
     }
 
-    public override bool Equals(object? obj) =>
-        obj is Instrument other && Equals(other);
+    public override bool Equals(object? obj) => Equals(obj as Instrument);
 
     public static bool operator ==(Instrument? a, Instrument? b)
     {
