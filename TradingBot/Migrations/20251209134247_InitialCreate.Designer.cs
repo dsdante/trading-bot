@@ -32,8 +32,8 @@ namespace TradingBot.Migrations
                         .HasColumnType("smallint")
                         .HasColumnName("instrument");
 
-                    b.Property<DateTime>("Timestamp")
-                        .HasColumnType("timestamp with time zone")
+                    b.Property<int>("TimestampMinutes")
+                        .HasColumnType("integer")
                         .HasColumnName("timestamp");
 
                     b.Property<float>("Close")
@@ -56,7 +56,7 @@ namespace TradingBot.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("volume");
 
-                    b.HasKey("InstrumentId", "Timestamp")
+                    b.HasKey("InstrumentId", "TimestampMinutes")
                         .HasName("pk_candle");
 
                     b.ToTable("candle", null, t =>
@@ -135,15 +135,15 @@ namespace TradingBot.Migrations
                         .HasColumnType("smallint")
                         .HasColumnName("instrument");
 
-                    b.Property<DateTime>("Timestamp")
-                        .HasColumnType("timestamp with time zone")
+                    b.Property<int>("TimestampMinutes")
+                        .HasColumnType("integer")
                         .HasColumnName("timestamp");
 
                     b.Property<float>("SplitFactor")
                         .HasColumnType("real")
                         .HasColumnName("split");
 
-                    b.HasKey("InstrumentId", "Timestamp")
+                    b.HasKey("InstrumentId", "TimestampMinutes")
                         .HasName("pk_split");
 
                     b.ToTable("split", (string)null);

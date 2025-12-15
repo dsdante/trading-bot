@@ -32,13 +32,13 @@ public partial class HistoryService(
             "Started downloading history beginning. Looking for instruments missing history beginning...");
 
         // Find the earliest candles of the instruments for which we don't have the beginning of history.
-        List<(Instrument instrument, DateTime earliest)> earliestCandles = await dbContext.Instruments
+        List<(Instrument instrument, int earliest)> earliestCandles = await dbContext.Instruments
             .Where(instrument =>
                 !instrument.HasEarliest1MinCandle &&
                 instrument.Figi != null &&
                 historyAssetTypes.Contains(instrument.AssetType))
             .SelectMany(
-                instrument => instrument.Candles.Select(candle => candle.Timestamp).DefaultIfEmpty(),
+                instrument => instrument.Candles.Select(candle => candle.TimestampMinutes).DefaultIfEmpty(),
                 (instrument, timestamp) => new { instrument, timestamp })
             .GroupBy(candle => candle.instrument.Id)
             .Select(group => new
@@ -51,7 +51,7 @@ public partial class HistoryService(
                 dbContext.Instruments,
                 candle => candle.instrumentId,
                 instrument => instrument.Id,
-                (candle, instrument) => new ValueTuple<Instrument, DateTime>(instrument, candle.timestamp))
+                (candle, instrument) => new ValueTuple<Instrument, int>(instrument, candle.timestamp))
             .ToListAsync(cancellation);
 
         if (earliestCandles.Count == 0)
@@ -65,7 +65,7 @@ public partial class HistoryService(
         int yearToday = DateTime.UtcNow.Year;
         foreach (var (instrument, timestamp) in earliestCandles)
         {
-            int year = timestamp != default ? timestamp.Year - 1 : yearToday - 1;
+            int year = timestamp == 0 ? yearToday - 1 : Candle.ToDateTime(timestamp).Year - 1;
             queue.Enqueue((instrument, year), Priority.Normal);
         }
 
@@ -119,28 +119,29 @@ public partial class HistoryService(
 
         // Find the latest candles for each instrument.
         var yearToday = DateTime.UtcNow.Year;
-        DateTime startOfYear = new(yearToday, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        List<(Instrument instrument, DateTime latest)> latestCandles = await dbContext.Instruments
-            .Where(
-                instrument => instrument.Figi != null &&
+        int yesterday = Candle.ToMinutes(DateTime.UtcNow.AddDays(-1), round: true);
+
+        List<(Instrument instrument, int latest)> latestCandles = await dbContext.Instruments
+            .Where(instrument =>
+                instrument.Figi != null &&
                 historyAssetTypes.Contains(instrument.AssetType))
             .SelectMany(
-                instrument => instrument.Candles.Select(candle => (DateTime?)candle.Timestamp).DefaultIfEmpty(),
+                instrument => instrument.Candles.Select(candle => candle.TimestampMinutes).DefaultIfEmpty(),
                 (instrument, timestamp) => new { instrument, timestamp })
             .GroupBy(candle => candle.instrument.Id)
             .Select(group => new
             {
                 instrumentId = group.Key,
-                timestamp = group.Max(candle => candle.timestamp) ?? startOfYear,
+                timestamp = group.Max(candle => candle.timestamp),
             })
-            .Where(candle => candle.timestamp < DateTime.UtcNow.AddDays(-1))
+            .Where(candle => candle.timestamp < yesterday)
             .OrderBy(candle => candle.timestamp)
             // TODO: Replace Max+Join with MaxBy when it's supported in EF. https://github.com/dotnet/efcore/issues/25566
             .Join(
                 dbContext.Instruments,
                 candle => candle.instrumentId,
                 instrument => instrument.Id,
-                (candle, instrument) => new ValueTuple<Instrument, DateTime>(instrument, candle.timestamp))
+                (candle, instrument) => new ValueTuple<Instrument, int>(instrument, candle.timestamp))
             .ToListAsync(cancellation);
 
         if (latestCandles.Count == 0)
@@ -167,7 +168,7 @@ public partial class HistoryService(
         foreach (var (instrument, timestamp) in latestCandles)
         {
             // Download earlier years with a higher priority.
-            var year = timestamp.Year;
+            var year = timestamp == 0 ? yearToday : Candle.ToDateTime(timestamp).Year;
             var priority = year < yearToday ? Priority.High : Priority.Normal;
             queue.Enqueue((instrument, year), priority);
         }

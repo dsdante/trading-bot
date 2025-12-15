@@ -2,6 +2,7 @@ using Microsoft.Extensions.Options;
 using Npgsql;
 using System.Buffers;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO.Compression;
 using System.IO.Pipelines;
 using System.Net;
@@ -127,7 +128,9 @@ public partial class TInvestHistoryDataService(
 
         // Populate the beginning of the result buffer with the instrument ID.
         // We need ASCII, but UTF-8 will do for an integer.
-        instrumentId.TryFormat(resultBuffer.Span, out int idLength);
+        var resultSpan = resultBuffer.Span;
+        instrumentId.TryFormat(resultSpan, out int idLength);
+        resultSpan[idLength++] = (byte)';';
 
         var candleCount = 0;
 
@@ -138,10 +141,10 @@ public partial class TInvestHistoryDataService(
 
             while (true)
             {
-                var line = ProcessLine(ref readBuffer, resultBuffer, idLength);
-                if (line.IsEmpty)
+                var writtenLength = ProcessLine(ref readBuffer, resultBuffer.Span[idLength..]);
+                if (writtenLength == 0)
                     break;
-                await destination.WriteAsync(line, cancellation);
+                await destination.WriteAsync(resultBuffer[..(idLength + writtenLength)], cancellation);
                 candleCount++;
             }
 
@@ -153,30 +156,34 @@ public partial class TInvestHistoryDataService(
         return candleCount;
     }
 
-    // Replace the GUID with the ID, trim the trailing semicolon, and advance the buffer.
-    private static Memory<byte> ProcessLine(
-        ref ReadOnlySequence<byte> readBuffer,
-        Memory<byte> resultBuffer,
-        int idLength)
+    // Replace the timestamp with minute count, trim the trailing semicolon, advance the buffer.
+    // Returns the length of the written data.
+    private static int ProcessLine(ref ReadOnlySequence<byte> source, Span<byte> destination)
     {
-        var endOfLine = readBuffer.PositionOf((byte)'\n') ?? default;
+        var endOfLine = source.PositionOf((byte)'\n') ?? default;
         if (endOfLine.GetObject() == null)
-            return default;
+            return 0;
 
-        // Trim the GUID and the trailing semicolon.
-        var line = readBuffer.Slice(36, readBuffer.GetOffset(endOfLine) - readBuffer.GetOffset(readBuffer.Start) - 37);
-        var resultLength = idLength + (int)line.Length + 1;
-        if (resultBuffer.Length < resultLength)
-            throw new InternalBufferOverflowException($"CSV line longer than {resultBuffer.Length} characters: " +
-                Encoding.ASCII.GetString(readBuffer.Slice(0, readBuffer.GetPosition(1, line.End))));
+        // Write timespan in minutes
+        Span<char> timestampSpan = stackalloc char[19];
+        Encoding.ASCII.GetChars(source.Slice(37, 19), timestampSpan);
+        var timestamp = DateTime.ParseExact(timestampSpan, "s", DateTimeFormatInfo.InvariantInfo);
+        var minutes = Candle.ToMinutes(timestamp);
+        minutes.TryFormat(destination, out int minutesLength);
+        destination = destination[minutesLength..];
 
-        var resultSpan = resultBuffer.Span;
-        line.CopyTo(resultSpan[idLength..]);
-        resultSpan[resultLength - 1] = (byte)'\n';
+        // Trim the GUID, the timestamp and the trailing semicolon.
+        var line = source.Slice(57, source.GetOffset(endOfLine) - source.GetOffset(source.Start) - 58);
+        if (destination.Length < line.Length + 1)
+            throw new InternalBufferOverflowException($"CSV line is too long: " +
+                Encoding.ASCII.GetString(source.Slice(0, endOfLine)));
+
+        line.CopyTo(destination);
+        destination[(int)line.Length] = (byte)'\n';
 
         // Advance the buffer.
-        readBuffer = readBuffer.Slice(readBuffer.GetPosition(1, endOfLine));
-        return resultBuffer[..resultLength];
+        source = source.Slice(source.GetPosition(1, endOfLine));
+        return minutesLength + (int)line.Length + 1;
     }
 
     [LoggerMessage(Level = LogLevel.Information, Message = @"{assetType} {instrument} ({year}): {addedCount}/{readCount} candles added in {time:s\\.fff}s")]

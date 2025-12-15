@@ -43,7 +43,7 @@ namespace TradingBot.Migrations
                 columns: table => new
                 {
                     instrument = table.Column<short>(type: "smallint", nullable: false),
-                    timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    timestamp = table.Column<int>(type: "integer", nullable: false),
                     open = table.Column<float>(type: "real", nullable: false),
                     high = table.Column<float>(type: "real", nullable: false),
                     low = table.Column<float>(type: "real", nullable: false),
@@ -69,7 +69,7 @@ namespace TradingBot.Migrations
                 columns: table => new
                 {
                     instrument = table.Column<short>(type: "smallint", nullable: false),
-                    timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    timestamp = table.Column<int>(type: "integer", nullable: false),
                     split = table.Column<float>(type: "real", nullable: false)
                 },
                 constraints: table =>

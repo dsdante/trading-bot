@@ -42,6 +42,7 @@ public class CandleHistoryCsvStreamTests
         var candles = await dbContext.Candles.ToListAsync();
 
         Assert.That(candles, Has.One.Items);
+        Assert.That(candles[0].Timestamp, Is.EqualTo(DateTime.Parse("2024-02-24T07:00:00Z")));
     }
 
     [Test]

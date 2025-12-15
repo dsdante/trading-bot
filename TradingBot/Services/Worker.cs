@@ -31,12 +31,14 @@ public class Worker(IServiceScopeFactory scopeFactory, IHostApplicationLifetime 
             // Re-throw the underlying OperationCanceledException.
             if (ex is OperationCanceledException)
                 throw;
+
             while (ex.InnerException != null)
             {
                 ex = ex.InnerException;
                 if (ex is OperationCanceledException)
                     throw ex;
             }
+
             throw;
         }
     }
