@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using System.Diagnostics;
 using System.Net;
 using TradingBot.Data;
@@ -9,6 +10,7 @@ public partial class HistoryService(
     ITInvestService tInvest,
     ITInvestHistoryDataService tInvestHistoryData,
     TradingBotDbContext dbContext,
+    IOptions<TradingBotOptions> options,
     ILogger<HistoryService> logger)
 {
     /// <summary> Refresh instrument info from T-Invest API </summary>
@@ -36,7 +38,7 @@ public partial class HistoryService(
             .Where(instrument =>
                 !instrument.HasEarliest1MinCandle &&
                 instrument.Figi != null &&
-                historyAssetTypes.Contains(instrument.AssetType))
+                options.Value.AssetTypes.Contains(instrument.AssetType))
             .SelectMany(
                 instrument => instrument.Candles.Select(candle => candle.TimestampMinutes).DefaultIfEmpty(),
                 (instrument, timestamp) => new { instrument, timestamp })
@@ -124,7 +126,7 @@ public partial class HistoryService(
         List<(Instrument instrument, int latest)> latestCandles = await dbContext.Instruments
             .Where(instrument =>
                 instrument.Figi != null &&
-                historyAssetTypes.Contains(instrument.AssetType))
+                options.Value.AssetTypes.Contains(instrument.AssetType))
             .SelectMany(
                 instrument => instrument.Candles.Select(candle => candle.TimestampMinutes).DefaultIfEmpty(),
                 (instrument, timestamp) => new { instrument, timestamp })
@@ -219,14 +221,6 @@ public partial class HistoryService(
         Normal,
         Low,
     }
-
-    private static readonly AssetType[] historyAssetTypes =
-    [
-        AssetType.Bond,
-        AssetType.Currency,
-        AssetType.Share,
-        AssetType.Etf
-    ];
 
     [LoggerMessage(Level = LogLevel.Information, Message = "{instrumentCount} instrument(s) need updating.")]
     private partial void LogInstrumentsNeedUpdating(int instrumentCount);

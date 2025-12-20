@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Npgsql;
+using TradingBot;
 using TradingBot.Data;
 
 namespace TradingBotTests;
@@ -25,6 +26,8 @@ public class Configuration
     public static string ConnectionString { get; private set; }
 
     public static DbContextOptionsBuilder<TradingBotDbContext> DbContextOptionsBuilder { get; private set; }
+
+    public static IOptions<TradingBotOptions> TradingBotOptions { get; private set; }
 
     public static string TInvestToken { get; private set; }
 
@@ -49,6 +52,8 @@ public class Configuration
 
         using (TradingBotDbContext dbContext = new(DbContextOptionsBuilder.Options, dbContextLogger))
             await dbContext.Database.EnsureCreatedAsync();
+
+        TradingBotOptions = Options.Create(Root.Get<TradingBotOptions>()!);
 
         TInvestToken = Root.GetSection("TInvest:AccessToken").Get<string>()!;
         Assert.That(TInvestToken, Is.Not.WhiteSpace, "T-Invest token is not set.");

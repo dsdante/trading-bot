@@ -21,6 +21,7 @@ public class HistoryServiceTests
             tInvestService,
             tInvestHistoryData,
             dbContext,
+            Configuration.TradingBotOptions,
             Configuration.LoggerFactory.CreateLogger<HistoryService>());
     }
 

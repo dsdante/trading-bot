@@ -5,6 +5,7 @@ var builder = Host.CreateApplicationBuilder(args);
 var services = builder.Services;
 var configuration = builder.Configuration;
 
+services.Configure<TradingBotOptions>(configuration);
 services.AddTradingBotDatabase(configuration, builder.Environment);
 services.AddInvestApiClient((_, settings) => configuration.Bind("TInvest", settings));
 services.AddHttpClient<ITInvestHistoryDataService, TInvestHistoryDataService>(httpClient =>
