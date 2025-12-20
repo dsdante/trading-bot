@@ -7,13 +7,16 @@ public class Worker(IServiceScopeFactory scopeFactory, IHostApplicationLifetime 
     // Main logic entry point
     private static async Task RunAsync(IServiceProvider services, CancellationToken cancellation)
     {
-        //var dbContext = services.GetRequiredService<Data.TradingBotDbContext>();
-        //await dbContext.Database.EnsureCreatedAsync(cancellation);
+        var dbContext = services.GetRequiredService<Data.TradingBotDbContext>();
+        await dbContext.Database.EnsureCreatedAsync(cancellation);
 
         var historyService = services.GetRequiredService<HistoryService>();
         await historyService.UpdateInstrumentsAsync(cancellation);
-        await historyService.DownloadHistoryBeginningAsync(cancellation);
-        await historyService.UpdateHistoryAsync(cancellation);
+        //await historyService.DownloadHistoryBeginningAsync(cancellation);
+        //await historyService.UpdateHistoryAsync(cancellation);
+
+        //var featureService = services.GetRequiredService<FeatureService>();
+        //await featureService.UpdateFeaturesAsync(cancellation);
     }
 
     // Most services are scoped by default; this is a wrapper that creates a scope for them.

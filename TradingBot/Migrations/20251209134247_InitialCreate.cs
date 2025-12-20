@@ -65,6 +65,27 @@ namespace TradingBot.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "feature",
+                columns: table => new
+                {
+                    instrument = table.Column<short>(type: "smallint", nullable: false),
+                    timestamp = table.Column<int>(type: "integer", nullable: false),
+                    lag = table.Column<float>(type: "real", nullable: false),
+                    gap = table.Column<float>(type: "real", nullable: false),
+                    volume = table.Column<float>(type: "real", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_feature", x => new { x.instrument, x.timestamp });
+                    table.ForeignKey(
+                        name: "fk_feature_instruments_instrument",
+                        column: x => x.instrument,
+                        principalTable: "instrument",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "split",
                 columns: table => new
                 {
@@ -95,6 +116,9 @@ namespace TradingBot.Migrations
         {
             migrationBuilder.DropTable(
                 name: "candle");
+
+            migrationBuilder.DropTable(
+                name: "feature");
 
             migrationBuilder.DropTable(
                 name: "split");

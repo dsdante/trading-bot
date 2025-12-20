@@ -14,9 +14,12 @@ public class TInvestHistoryDataServiceTests
     private TInvestHistoryDataService tInvestHistoryData;
 
     [OneTimeSetUp]
-    public void OneTimeSetUp()
+    public async Task OneTimeSetUp()
     {
+        await dbContext.Feature.ExecuteDeleteAsync();
+
         httpClient.DefaultRequestHeaders.Authorization = new("Bearer", Configuration.TInvestToken);
+
         tInvestHistoryData = new(
             httpClient,
             Configuration.ConnectionStringBuilder,

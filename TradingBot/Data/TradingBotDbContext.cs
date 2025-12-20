@@ -12,6 +12,7 @@ public partial class TradingBotDbContext(
 {
     public DbSet<Instrument> Instruments { get; init; }
     public DbSet<Candle> Candles { get; init; }
+    public DbSet<Feature> Feature { get; init; }
     public DbSet<Split> Splits { get; init; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) =>
@@ -65,7 +66,7 @@ public partial class TradingBotDbContext(
             }
         }
 
-        // TODO: Race condition
+        // TODO: Race condition. Use raw SQL?
         if (added.Count > 0)
             await Instruments.AddRangeAsync(added.Values, cancellation);
         if (updated.Count > 0)

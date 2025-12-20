@@ -13,6 +13,7 @@ services.AddHttpClient<ITInvestHistoryDataService, TInvestHistoryDataService>(ht
         new("Bearer", configuration.GetSection("TInvest:AccessToken").Get<string>()));
 services.AddScoped<ITInvestService, TInvestService>();
 services.AddScoped<HistoryService>();
+services.AddScoped<FeatureService>();
 services.AddHostedService<Worker>();
 
 var host = builder.Build();

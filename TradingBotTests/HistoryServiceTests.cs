@@ -12,12 +12,15 @@ public class HistoryServiceTests
     private readonly TradingBotDbContext dbContext = new(
         Configuration.DbContextOptionsBuilder.Options,
         Configuration.LoggerFactory.CreateLogger<TradingBotDbContext>());
-    private HistoryService history;
+
+    private HistoryService historyService;
 
     [OneTimeSetUp]
-    public void OneTimeSetUp()
+    public async Task OneTimeSetUp()
     {
-        history = new(
+        await dbContext.Feature.ExecuteDeleteAsync();
+
+        historyService = new(
             tInvestService,
             tInvestHistoryData,
             dbContext,
@@ -42,7 +45,7 @@ public class HistoryServiceTests
     [Test]
     public async Task UpdateInstruments()
     {
-        await history.UpdateInstrumentsAsync(CancellationToken.None);
+        await historyService.UpdateInstrumentsAsync(CancellationToken.None);
 
         var expected = tInvestService.GetInstrumentsAsync().ToBlockingEnumerable();
         var actual = await dbContext.Instruments.ToListAsync();
@@ -56,7 +59,7 @@ public class HistoryServiceTests
         var instrument = tInvestService.DefaultInstrument;
         dbContext.Instruments.Add(instrument);
         await dbContext.SaveChangesAsync();
-        await history.DownloadHistoryBeginningAsync(CancellationToken.None);
+        await historyService.DownloadHistoryBeginningAsync(CancellationToken.None);
 
         // Without the current year, but plus one for the 404 check.
         var expected = Enumerable.Range(
@@ -78,7 +81,7 @@ public class HistoryServiceTests
         int thisYear = DateTime.UtcNow.Year;
         tInvestHistoryData.HistoryYears = 4;
         tInvestHistoryData.YearServerErrors.Add(thisYear - 2);
-        await history.DownloadHistoryBeginningAsync(CancellationToken.None);
+        await historyService.DownloadHistoryBeginningAsync(CancellationToken.None);
 
         var expected = new[] { thisYear - 1, thisYear - 2, thisYear - 2, thisYear - 3, thisYear - 4 }
             .Select(year => (instrument, year));
@@ -97,7 +100,7 @@ public class HistoryServiceTests
         tInvestHistoryData.HistoryYears = 4;
         tInvestHistoryData.YearServerErrors.Add(thisYear - 2);
         tInvestHistoryData.YearServerErrors.Add(thisYear - 2);
-        await history.DownloadHistoryBeginningAsync(CancellationToken.None);
+        await historyService.DownloadHistoryBeginningAsync(CancellationToken.None);
 
         var expected = new[] { thisYear - 1, thisYear - 2, thisYear - 2 }
             .Select(year => (instrument, year));
@@ -115,7 +118,7 @@ public class HistoryServiceTests
         dbContext.Instruments.Add(instrument);
         dbContext.Candles.Add(new Candle { Instrument = instrument, Timestamp = lastYear });
         await dbContext.SaveChangesAsync();
-        await history.UpdateHistoryAsync(CancellationToken.None);
+        await historyService.UpdateHistoryAsync(CancellationToken.None);
 
         // Without the current year, but plus one for the 404 check.
         var expected = new[] { thisYear - 1, thisYear }
@@ -135,7 +138,7 @@ public class HistoryServiceTests
         dbContext.Candles.Add(new Candle { Instrument = instrument, Timestamp = lastYear });
         await dbContext.SaveChangesAsync();
         tInvestHistoryData.YearServerErrors.Add(thisYear - 1);
-        await history.UpdateHistoryAsync(CancellationToken.None);
+        await historyService.UpdateHistoryAsync(CancellationToken.None);
 
         var expected = new[] { thisYear - 1, thisYear - 1, thisYear }
             .Select(year => (instrument, year));
@@ -155,7 +158,7 @@ public class HistoryServiceTests
         await dbContext.SaveChangesAsync();
         tInvestHistoryData.YearServerErrors.Add(thisYear - 1);
         tInvestHistoryData.YearServerErrors.Add(thisYear - 1);
-        await history.UpdateHistoryAsync(CancellationToken.None);
+        await historyService.UpdateHistoryAsync(CancellationToken.None);
 
         var expected = new[] { thisYear - 1, thisYear - 1 }
             .Select(year => (instrument, year));

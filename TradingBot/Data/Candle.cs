@@ -15,7 +15,7 @@ public class Candle
     public long Volume { get; init; }
 
     [DeleteBehavior(DeleteBehavior.Restrict)]
-    public required Instrument Instrument { get; init; }
+    public Instrument Instrument { get; init; } = null!;
 
     [NotMapped]
     public DateTime Timestamp

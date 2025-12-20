@@ -15,6 +15,7 @@ public class CandleHistoryCsvStreamTests
     [OneTimeSetUp]
     public async Task OneTimeSetUp()
     {
+        await dbContext.Feature.ExecuteDeleteAsync();
         await dbContext.Candles.ExecuteDeleteAsync();
         await dbContext.Instruments.ExecuteDeleteAsync();
         await dbContext.Instruments.AddAsync(new() { Id = 1, Name = "Test instrument" });
@@ -38,9 +39,11 @@ public class CandleHistoryCsvStreamTests
             CancellationToken.None);
         await using var file = File.OpenRead(Path.Combine("CandleHistoryCsv", "candle.csv"));
         await file.CopyToAsync(dbStream);
-        await dbStream.CommitAsync(CancellationToken.None);
-        var candles = await dbContext.Candles.ToListAsync();
 
+        int rowCount = await dbStream.CommitAsync(CancellationToken.None);
+        Assert.That(rowCount, Is.EqualTo(1));
+
+        var candles = await dbContext.Candles.ToListAsync();
         Assert.That(candles, Has.One.Items);
         Assert.That(candles[0].Timestamp, Is.EqualTo(DateTime.Parse("2024-02-24T07:00:00Z")));
     }

@@ -69,6 +69,34 @@ namespace TradingBot.Migrations
                         });
                 });
 
+            modelBuilder.Entity("TradingBot.Data.Feature", b =>
+                {
+                    b.Property<short>("InstrumentId")
+                        .HasColumnType("smallint")
+                        .HasColumnName("instrument");
+
+                    b.Property<int>("TimestampMinutes")
+                        .HasColumnType("integer")
+                        .HasColumnName("timestamp");
+
+                    b.Property<float>("Gap")
+                        .HasColumnType("real")
+                        .HasColumnName("gap");
+
+                    b.Property<float>("Lag")
+                        .HasColumnType("real")
+                        .HasColumnName("lag");
+
+                    b.Property<float>("Volume")
+                        .HasColumnType("real")
+                        .HasColumnName("volume");
+
+                    b.HasKey("InstrumentId", "TimestampMinutes")
+                        .HasName("pk_feature");
+
+                    b.ToTable("feature", (string)null);
+                });
+
             modelBuilder.Entity("TradingBot.Data.Instrument", b =>
                 {
                     b.Property<short>("Id")
@@ -157,6 +185,18 @@ namespace TradingBot.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_candle_instruments_instrument");
+
+                    b.Navigation("Instrument");
+                });
+
+            modelBuilder.Entity("TradingBot.Data.Feature", b =>
+                {
+                    b.HasOne("TradingBot.Data.Instrument", "Instrument")
+                        .WithMany()
+                        .HasForeignKey("InstrumentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_feature_instruments_instrument");
 
                     b.Navigation("Instrument");
                 });
