@@ -29,8 +29,9 @@ internal class TInvestServiceMock : ITInvestService
             Figi = "BBG000BBJQV0",
             Uid = new("81575098-df8a-45c4-82dc-1b64374dcfdb"),
             Lot = 1,
+            Country = "US",
             Otc = false,
-            ForQualInvestor = true,
+            Qual = true,
             ApiTradeAvailable = true,
         };
 

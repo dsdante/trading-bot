@@ -13,9 +13,10 @@ public class Instrument : IEquatable<Instrument>
     public string? Figi { get; set; }
     public Guid Uid { get; init; }
     public int Lot { get; set; }
-    [Column("otc_flag")] public bool Otc { get; set; }
-    [Column("for_qual_investor_flag")] public bool ForQualInvestor { get; set; }
-    [Column("api_trade_available_flag")] public bool ApiTradeAvailable { get; set; }
+    public string? Country { get; set; }
+    public bool Otc { get; set; }
+    public bool Qual { get; set; }
+    public bool ApiTradeAvailable { get; set; }
     [Column("has_earliest_1min_candle")] public bool HasEarliest1MinCandle { get; set; }
 
     public ICollection<Candle> Candles { get; init; } = null!;
@@ -37,8 +38,9 @@ public class Instrument : IEquatable<Instrument>
             Figi == other.Figi &&
             Uid == other.Uid &&
             Lot == other.Lot &&
+            Country == other.Country &&
             Otc == other.Otc &&
-            ForQualInvestor == other.ForQualInvestor &&
+            Qual == other.Qual &&
             ApiTradeAvailable == other.ApiTradeAvailable;
     }
 
@@ -62,8 +64,9 @@ public class Instrument : IEquatable<Instrument>
         hashCode.Add(Figi);
         hashCode.Add(Uid);
         hashCode.Add(Lot);
+        hashCode.Add(Country);
         hashCode.Add(Otc);
-        hashCode.Add(ForQualInvestor);
+        hashCode.Add(Qual);
         hashCode.Add(ApiTradeAvailable);
         return hashCode.ToHashCode();
     }

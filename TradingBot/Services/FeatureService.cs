@@ -34,9 +34,10 @@ public partial class FeatureService(
                     FROM candle
                     JOIN instrument ON instrument.id = instrument
                     WHERE
-                        api_trade_available_flag
+                        api_trade_available
                         AND low > 0
                         AND asset_type = ANY({options.Value.AssetTypes})
+                        AND country = ANY({options.Value.Countries})
                 )
                 WHERE lag IS NOT NULL
                 """)
@@ -66,9 +67,10 @@ public partial class FeatureService(
                 FROM candle
                 JOIN instrument ON instrument.id = instrument
                 WHERE
-                    api_trade_available_flag
+                    api_trade_available
                     AND low > 0
                     AND asset_type = ANY({options.Value.AssetTypes})
+                    AND country = ANY({options.Value.Countries})
             )
 
             INSERT INTO feature

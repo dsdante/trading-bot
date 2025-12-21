@@ -38,7 +38,8 @@ public partial class HistoryService(
             .Where(instrument =>
                 !instrument.HasEarliest1MinCandle &&
                 instrument.Figi != null &&
-                options.Value.AssetTypes.Contains(instrument.AssetType))
+                options.Value.AssetTypes.Contains(instrument.AssetType) &&
+                options.Value.Countries.Contains(instrument.Country))
             .SelectMany(
                 instrument => instrument.Candles.Select(candle => candle.TimestampMinutes).DefaultIfEmpty(),
                 (instrument, timestamp) => new { instrument, timestamp })
@@ -126,7 +127,8 @@ public partial class HistoryService(
         List<(Instrument instrument, int latest)> latestCandles = await dbContext.Instruments
             .Where(instrument =>
                 instrument.Figi != null &&
-                options.Value.AssetTypes.Contains(instrument.AssetType))
+                options.Value.AssetTypes.Contains(instrument.AssetType) &&
+                options.Value.Countries.Contains(instrument.Country))
             .SelectMany(
                 instrument => instrument.Candles.Select(candle => candle.TimestampMinutes).DefaultIfEmpty(),
                 (instrument, timestamp) => new { instrument, timestamp })

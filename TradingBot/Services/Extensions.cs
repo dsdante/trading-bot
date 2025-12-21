@@ -69,8 +69,9 @@ internal static class Extensions
             Figi = response.Figi,
             Uid = new(response.Uid),
             Lot = response.Lot,
+            Country = response.CountryOfRisk == "" ? null : response.CountryOfRisk,
             Otc = response.OtcFlag,
-            ForQualInvestor = response.ForQualInvestorFlag,
+            Qual = response.ForQualInvestorFlag,
             ApiTradeAvailable = response.ApiTradeAvailableFlag,
         };
 
@@ -83,8 +84,9 @@ internal static class Extensions
             Figi = response.Figi,
             Uid = new(response.Uid),
             Lot = response.Lot,
+            Country = response.CountryOfRisk == "" ? null : response.CountryOfRisk,
             Otc = response.OtcFlag,
-            ForQualInvestor = response.ForQualInvestorFlag,
+            Qual = response.ForQualInvestorFlag,
             ApiTradeAvailable = response.ApiTradeAvailableFlag,
         };
 
@@ -97,8 +99,9 @@ internal static class Extensions
             Figi = response.Figi,
             Uid = new(response.Uid),
             Lot = response.Lot,
+            Country = response.CountryOfRisk == "" ? null : response.CountryOfRisk,
             Otc = response.OtcFlag,
-            ForQualInvestor = response.ForQualInvestorFlag,
+            Qual = response.ForQualInvestorFlag,
             ApiTradeAvailable = response.ApiTradeAvailableFlag,
         };
 
@@ -111,8 +114,9 @@ internal static class Extensions
             Figi = response.Figi,
             Uid = new(response.Uid),
             Lot = response.Lot,
+            Country = response.CountryOfRisk == "" ? null : response.CountryOfRisk,
             Otc = response.OtcFlag,
-            ForQualInvestor = response.ForQualInvestorFlag,
+            Qual = response.ForQualInvestorFlag,
             ApiTradeAvailable = response.ApiTradeAvailableFlag,
         };
 
@@ -125,8 +129,9 @@ internal static class Extensions
             Figi = null,
             Uid = new(response.Uid),
             Lot = response.Lot,
+            Country = response.CountryOfRisk == "" ? null : response.CountryOfRisk,
             Otc = response.OtcFlag,
-            ForQualInvestor = response.ForQualInvestorFlag,
+            Qual = response.ForQualInvestorFlag,
             ApiTradeAvailable = response.ApiTradeAvailableFlag,
         };
 
@@ -139,8 +144,9 @@ internal static class Extensions
             Figi = response.Figi,
             Uid = new(response.Uid),
             Lot = response.Lot,
+            Country = response.CountryOfRisk == "" ? null : response.CountryOfRisk,
             Otc = response.OtcFlag,
-            ForQualInvestor = response.ForQualInvestorFlag,
+            Qual = response.ForQualInvestorFlag,
             ApiTradeAvailable = response.ApiTradeAvailableFlag,
         };
 }

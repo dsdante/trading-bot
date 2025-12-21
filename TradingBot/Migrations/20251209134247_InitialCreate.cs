@@ -28,9 +28,10 @@ namespace TradingBot.Migrations
                     figi = table.Column<string>(type: "text", nullable: true),
                     uid = table.Column<Guid>(type: "uuid", nullable: false),
                     lot = table.Column<int>(type: "integer", nullable: false),
-                    otc_flag = table.Column<bool>(type: "boolean", nullable: false),
-                    for_qual_investor_flag = table.Column<bool>(type: "boolean", nullable: false),
-                    api_trade_available_flag = table.Column<bool>(type: "boolean", nullable: false),
+                    country = table.Column<string>(type: "text", nullable: true),
+                    otc = table.Column<bool>(type: "boolean", nullable: false),
+                    qual = table.Column<bool>(type: "boolean", nullable: false),
+                    api_trade_available = table.Column<bool>(type: "boolean", nullable: false),
                     has_earliest_1min_candle = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>

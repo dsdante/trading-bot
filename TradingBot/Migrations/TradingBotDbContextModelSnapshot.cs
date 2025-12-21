@@ -105,19 +105,19 @@ namespace TradingBot.Migrations
 
                     b.Property<bool>("ApiTradeAvailable")
                         .HasColumnType("boolean")
-                        .HasColumnName("api_trade_available_flag");
+                        .HasColumnName("api_trade_available");
 
                     b.Property<AssetType>("AssetType")
                         .HasColumnType("asset_type")
                         .HasColumnName("asset_type");
 
+                    b.Property<string>("Country")
+                        .HasColumnType("text")
+                        .HasColumnName("country");
+
                     b.Property<string>("Figi")
                         .HasColumnType("text")
                         .HasColumnName("figi");
-
-                    b.Property<bool>("ForQualInvestor")
-                        .HasColumnType("boolean")
-                        .HasColumnName("for_qual_investor_flag");
 
                     b.Property<bool>("HasEarliest1MinCandle")
                         .HasColumnType("boolean")
@@ -134,7 +134,11 @@ namespace TradingBot.Migrations
 
                     b.Property<bool>("Otc")
                         .HasColumnType("boolean")
-                        .HasColumnName("otc_flag");
+                        .HasColumnName("otc");
+
+                    b.Property<bool>("Qual")
+                        .HasColumnType("boolean")
+                        .HasColumnName("qual");
 
                     b.Property<string>("Ticker")
                         .HasColumnType("text")

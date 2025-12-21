@@ -28,8 +28,9 @@ public class FeatureServiceTests
             Figi = "BBG000BBJQV0",
             Uid = new("81575098-df8a-45c4-82dc-1b64374dcfdb"),
             Lot = 1,
+            Country = "US",
             Otc = false,
-            ForQualInvestor = true,
+            Qual = true,
             ApiTradeAvailable = true,
         });
 
@@ -41,8 +42,9 @@ public class FeatureServiceTests
             Figi = "BBG004731354",
             Uid = new("fd417230-19cf-4e7b-9623-f7c9ca18ec6b"),
             Lot = 1,
+            Country = "RU",
             Otc = false,
-            ForQualInvestor = false,
+            Qual = false,
             ApiTradeAvailable = true,
         });
 

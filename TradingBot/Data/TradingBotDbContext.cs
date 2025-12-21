@@ -53,8 +53,9 @@ public partial class TradingBotDbContext(
                 oldInstrument.Ticker = instrument.Ticker;
                 oldInstrument.Figi = instrument.Figi;
                 oldInstrument.Lot = instrument.Lot;
+                oldInstrument.Country = instrument.Country;
                 oldInstrument.Otc = instrument.Otc;
-                oldInstrument.ForQualInvestor = instrument.ForQualInvestor;
+                oldInstrument.Qual = instrument.Qual;
                 oldInstrument.ApiTradeAvailable = instrument.ApiTradeAvailable;
                 oldInstrument.HasEarliest1MinCandle |= instrument.HasEarliest1MinCandle;
                 updated.Add(instrument.Uid, oldInstrument);

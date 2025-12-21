@@ -13,5 +13,6 @@ public class TradingBotOptions
         float VolumeDeviation);
 
     public required AssetType[] AssetTypes { get; init; }
+    public required string[] Countries { get; init; }
     public required FeatureScaleOptions FeatureScale { get; init; }
 }
