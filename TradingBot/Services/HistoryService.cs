@@ -51,7 +51,7 @@ public partial class HistoryService(
             })
             // TODO: Replace Min+Join with MinBy once it's supported in EF. https://github.com/dotnet/efcore/issues/25566
             .Join(
-                dbContext.Instruments,
+                dbContext.Instruments.AsNoTracking(),
                 candle => candle.instrumentId,
                 instrument => instrument.Id,
                 (candle, instrument) => new ValueTuple<Instrument, int>(instrument, candle.timestamp))
@@ -142,7 +142,7 @@ public partial class HistoryService(
             .OrderBy(candle => candle.timestamp)
             // TODO: Replace Max+Join with MaxBy when it's supported in EF. https://github.com/dotnet/efcore/issues/25566
             .Join(
-                dbContext.Instruments,
+                dbContext.Instruments.AsNoTracking(),
                 candle => candle.instrumentId,
                 instrument => instrument.Id,
                 (candle, instrument) => new ValueTuple<Instrument, int>(instrument, candle.timestamp))

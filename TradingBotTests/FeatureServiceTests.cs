@@ -67,7 +67,7 @@ public class FeatureServiceTests
             }
         }
 
-        var nvdaCandles = LoadCandles(nvda.Entity, Path.Combine("CandleHistoryCsv", "NVDA_2020-01-02.csv"));
+        var nvdaCandles = LoadCandles(nvda.Entity, Path.Combine("CandleHistoryCsv", "NVDA_2020-01-03.csv"));
         var rosnCandles = LoadCandles(rosn.Entity, Path.Combine("CandleHistoryCsv", "ROSN_2020-01-03.csv"));
         await dbContext.Candles.AddRangeAsync(nvdaCandles);
         await dbContext.Candles.AddRangeAsync(rosnCandles);

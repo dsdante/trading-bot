@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using TradingBot.Data;
 namespace TradingBot;
 
+/// <summary> Feature engineering </summary>
 public partial class FeatureService(
     TradingBotDbContext dbContext,
     IOptions<TradingBotOptions> options,

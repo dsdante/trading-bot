@@ -38,7 +38,10 @@ public partial class TradingBotDbContext(
     /// <summary> Add new instruments and update those with existing UIDs </summary>
     public async Task UpsertRangeAsync(IEnumerable<Instrument> instruments, CancellationToken cancellation)
     {
-        var oldInstruments = await Instruments.ToDictionaryAsync(i => i.Uid, i => i, cancellation);
+        var oldInstruments = await Instruments
+            .AsNoTracking()
+            .ToDictionaryAsync(i => i.Uid, i => i, cancellation);
+
         Dictionary<Guid, Instrument> added = [];
         Dictionary<Guid, Instrument> updated = [];
 
