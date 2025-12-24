@@ -69,15 +69,15 @@ namespace TradingBot.Migrations
                 name: "feature",
                 columns: table => new
                 {
-                    instrument = table.Column<short>(type: "smallint", nullable: false),
                     timestamp = table.Column<int>(type: "integer", nullable: false),
+                    instrument = table.Column<short>(type: "smallint", nullable: false),
                     lag = table.Column<float>(type: "real", nullable: false),
                     gap = table.Column<float>(type: "real", nullable: false),
                     volume = table.Column<float>(type: "real", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_feature", x => new { x.instrument, x.timestamp });
+                    table.PrimaryKey("pk_feature", x => new { x.timestamp, x.instrument });
                     table.ForeignKey(
                         name: "fk_feature_instruments_instrument",
                         column: x => x.instrument,
@@ -104,6 +104,11 @@ namespace TradingBot.Migrations
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "ix_feature_instrument",
+                table: "feature",
+                column: "instrument");
 
             migrationBuilder.CreateIndex(
                 name: "ix_instrument_uid",

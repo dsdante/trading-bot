@@ -10,13 +10,16 @@ public class Worker(IServiceScopeFactory scopeFactory, IHostApplicationLifetime 
         var dbContext = services.GetRequiredService<Data.TradingBotDbContext>();
         await dbContext.Database.EnsureCreatedAsync(cancellation);
 
-        var historyService = services.GetRequiredService<HistoryService>();
-        await historyService.UpdateInstrumentsAsync(cancellation);
+        //var historyService = services.GetRequiredService<HistoryService>();
+        //await historyService.UpdateInstrumentsAsync(cancellation);
         //await historyService.DownloadHistoryBeginningAsync(cancellation);
         //await historyService.UpdateHistoryAsync(cancellation);
 
         //var featureService = services.GetRequiredService<FeatureService>();
         //await featureService.UpdateFeaturesAsync(cancellation);
+
+        //var machineLearningService = services.GetRequiredService<MachineLearningService>();
+        //await machineLearningService.DumpFeatures(cancellation);
     }
 
     // Most services are scoped by default; this is a wrapper that creates a scope for them.

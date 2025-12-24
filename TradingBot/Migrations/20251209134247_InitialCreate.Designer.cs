@@ -71,13 +71,13 @@ namespace TradingBot.Migrations
 
             modelBuilder.Entity("TradingBot.Data.Feature", b =>
                 {
-                    b.Property<short>("InstrumentId")
-                        .HasColumnType("smallint")
-                        .HasColumnName("instrument");
-
                     b.Property<int>("TimestampMinutes")
                         .HasColumnType("integer")
                         .HasColumnName("timestamp");
+
+                    b.Property<short>("InstrumentId")
+                        .HasColumnType("smallint")
+                        .HasColumnName("instrument");
 
                     b.Property<float>("Gap")
                         .HasColumnType("real")
@@ -91,8 +91,11 @@ namespace TradingBot.Migrations
                         .HasColumnType("real")
                         .HasColumnName("volume");
 
-                    b.HasKey("InstrumentId", "TimestampMinutes")
+                    b.HasKey("TimestampMinutes", "InstrumentId")
                         .HasName("pk_feature");
+
+                    b.HasIndex("InstrumentId")
+                        .HasDatabaseName("ix_feature_instrument");
 
                     b.ToTable("feature", (string)null);
                 });

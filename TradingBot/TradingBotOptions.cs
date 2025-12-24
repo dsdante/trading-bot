@@ -15,4 +15,13 @@ public class TradingBotOptions
     public required AssetType[] AssetTypes { get; init; }
     public required string[] Countries { get; init; }
     public required FeatureScaleOptions FeatureScale { get; init; }
+    public required string CacheDirectory
+    {
+        get;
+        init
+        {
+            field = Path.GetFullPath(Environment.ExpandEnvironmentVariables(value));
+            Directory.CreateDirectory(field);
+        }
+    }
 }

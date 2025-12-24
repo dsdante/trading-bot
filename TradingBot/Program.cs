@@ -14,6 +14,7 @@ services.AddHttpClient<ITInvestHistoryDataService, TInvestHistoryDataService>(ht
 services.AddScoped<ITInvestService, TInvestService>();
 services.AddScoped<HistoryService>();
 services.AddScoped<FeatureService>();
+services.AddScoped<MachineLearningService>();
 services.AddHostedService<Worker>();
 
 var host = builder.Build();

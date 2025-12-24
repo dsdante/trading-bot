@@ -4,11 +4,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace TradingBot.Data;
 
 // A snapshot of engineered features (suitable for machine learning) for a specific instrument and a timestamp
-[PrimaryKey(nameof(InstrumentId), nameof(TimestampMinutes))]
+[PrimaryKey(nameof(TimestampMinutes), nameof(InstrumentId))]
 public class Feature
 {
-    [Column("instrument")] public short InstrumentId { get; init; }
     [Column("timestamp")] public int TimestampMinutes { get; init; }
+    [Column("instrument")] public short InstrumentId { get; init; }
 
     // All the features are normalized for mean = 0 and standard deviation = 1.
     public float Lag { get; init; }  // ln(timestamp[i] - timestamp[i-1])
