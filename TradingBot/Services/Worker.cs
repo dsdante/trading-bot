@@ -16,6 +16,7 @@ public class Worker(IServiceScopeFactory scopeFactory, IHostApplicationLifetime 
         //await historyService.UpdateHistoryAsync(cancellation);
 
         //var featureService = services.GetRequiredService<FeatureService>();
+        //await featureService.GetScaleAsync(cancellation);
         //await featureService.UpdateFeaturesAsync(cancellation);
 
         //var machineLearningService = services.GetRequiredService<MachineLearningService>();

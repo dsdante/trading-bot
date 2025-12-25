@@ -5,12 +5,12 @@ namespace TradingBot;
 public class TradingBotOptions
 {
     public record FeatureScaleOptions(
-        float LagMean,
-        float LagDeviation,
-        float GapMean,
-        float GapDeviation,
-        float VolumeMean,
-        float VolumeDeviation);
+        double LagMean,
+        double LagDeviation,
+        double GapMean,
+        double GapDeviation,
+        double VolumeMean,
+        double VolumeDeviation);
 
     public required AssetType[] AssetTypes { get; init; }
     public required string[] Countries { get; init; }

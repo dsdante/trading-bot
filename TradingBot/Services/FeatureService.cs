@@ -30,15 +30,15 @@ public partial class FeatureService(
                         instrument,
                         timestamp,
                         LN(timestamp - LAG(timestamp) OVER (PARTITION BY instrument ORDER BY timestamp)) AS lag,
-                        LN(close / LAG(close) OVER (PARTITION BY instrument ORDER BY timestamp)) AS gap,
-                        LN(volume * lot * SQRT(low * high) + 1) AS volume
+                        LN(close::double precision / LAG(close) OVER (PARTITION BY instrument ORDER BY timestamp)) AS gap,
+                        LN(SQRT(low::double precision * high) * lot * volume + 1) AS volume
                     FROM candle
                     JOIN instrument ON instrument.id = instrument
                     WHERE
                         api_trade_available
-                        AND low > 0
                         AND asset_type = ANY({options.Value.AssetTypes})
                         AND country = ANY({options.Value.Countries})
+                        AND low > 0
                 )
                 WHERE lag IS NOT NULL
                 """)
@@ -63,15 +63,15 @@ public partial class FeatureService(
                     instrument,
                     timestamp,
                     LN(timestamp - LAG(timestamp) OVER (PARTITION BY instrument ORDER BY timestamp)) AS lag,
-                    LN(close / LAG(close) OVER (PARTITION BY instrument ORDER BY timestamp)) AS gap,
-                    LN(volume * lot * SQRT(low * high) + 1) AS volume
+                    LN(close::double precision / LAG(close) OVER (PARTITION BY instrument ORDER BY timestamp)) AS gap,
+                    LN(SQRT(low::double precision * high) * lot * volume + 1) AS volume
                 FROM candle
                 JOIN instrument ON instrument.id = instrument
                 WHERE
                     api_trade_available
-                    AND low > 0
                     AND asset_type = ANY({options.Value.AssetTypes})
                     AND country = ANY({options.Value.Countries})
+                    AND low > 0
             )
 
             INSERT INTO feature
