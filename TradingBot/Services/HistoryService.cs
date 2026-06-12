@@ -154,7 +154,6 @@ public partial class HistoryService(
             return;
         }
 
-#pragma warning disable CA1873  // TODO: Remove when fixed https://github.com/dotnet/roslyn-analyzers/issues/7690
         if (latestCandles.Any(candle => !candle.instrument.HasEarliest1MinCandle))
         {
             LogBeginningOfHistoryNotFound(latestCandles
@@ -164,7 +163,6 @@ public partial class HistoryService(
                 .ThenBy(instrument => instrument.Name)
                 .Select(instrument => $"{instrument.AssetType} {instrument.Name}"));
         }
-#pragma warning restore CA1873
 
         LogInstrumentsNeedUpdating(latestCandles.Count);
 

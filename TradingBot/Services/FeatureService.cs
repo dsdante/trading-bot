@@ -76,8 +76,8 @@ public partial class FeatureService(
 
             INSERT INTO feature
             SELECT
-                instrument,
                 timestamp,
+                instrument,
                 (lag - {scale.LagMean}) / {scale.LagDeviation} AS lag,
                 (gap - {scale.GapMean}) / {scale.GapDeviation} AS gap,
                 (volume - {scale.VolumeMean}) / {scale.VolumeDeviation} AS volume

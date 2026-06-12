@@ -57,7 +57,7 @@ public class TInvestHistoryDataServiceTests
         await tInvestHistoryData.DownloadCsvAsync(instrument, 2020, CancellationToken.None);
         var candles = await dbContext.Candles.ToListAsync();
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(candles, Has.Exactly(193288).Items);
             Assert.That(candles, Is.All.Matches<Candle>(candle => candle.Instrument.Id == instrument.Id));
@@ -67,6 +67,6 @@ public class TInvestHistoryDataServiceTests
             Assert.That(candles, Is.All.Matches<Candle>(candle => candle.High >= candle.Open));
             Assert.That(candles, Is.All.Matches<Candle>(candle => candle.High >= candle.Close));
             Assert.That(candles, Is.All.Matches<Candle>(candle => candle.Volume >= 0));
-        });
+        }
     }
 }

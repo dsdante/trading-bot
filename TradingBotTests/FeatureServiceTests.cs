@@ -95,7 +95,7 @@ public class FeatureServiceTests
         var expected = Configuration.TradingBotOptions.Value.FeatureScale;
         var delta = 1e-6;
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(actual.LagMean, Is.EqualTo(expected.LagMean).Within(delta));
             Assert.That(actual.LagDeviation, Is.EqualTo(expected.LagDeviation).Within(delta));
@@ -103,7 +103,7 @@ public class FeatureServiceTests
             Assert.That(actual.GapDeviation, Is.EqualTo(expected.GapDeviation).Within(delta));
             Assert.That(actual.VolumeMean, Is.EqualTo(expected.VolumeMean).Within(delta));
             Assert.That(actual.VolumeDeviation, Is.EqualTo(expected.VolumeDeviation).Within(delta));
-        });
+        }
     }
 
     [Test]
@@ -126,7 +126,7 @@ public class FeatureServiceTests
 
         var delta = 1e-6;
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(lagMean, Is.Zero.Within(delta));
             Assert.That(gapMean, Is.Zero.Within(delta));
@@ -134,7 +134,7 @@ public class FeatureServiceTests
             Assert.That(lagDeviation, Is.EqualTo(1).Within(delta));
             Assert.That(gapDeviation, Is.EqualTo(1).Within(delta));
             Assert.That(volumeDeviation, Is.EqualTo(1).Within(delta));
-        });
+        }
     }
 
     // Welford's method for higher precision https://stackoverflow.com/a/2878000
