@@ -28,13 +28,13 @@ public partial class MachineLearningService(
         var stopwatch = Stopwatch.StartNew();
 
         var instruments = await dbContext.Instruments
-        .Where(i =>
-            i.ApiTradeAvailable &&
-            options.Value.AssetTypes.Contains(i.AssetType) &&
-            options.Value.Countries.Contains(i.Country))
-        .Select(i => i.Id)
-        .Order()
-        .ToListAsync(cancellation);
+            .Where(i =>
+                i.ApiTradeAvailable &&
+                options.Value.AssetTypes.Contains(i.AssetType) &&
+                options.Value.Countries.Contains(i.Country))
+            .Select(i => i.Id)
+            .Order()
+            .ToListAsync(cancellation);
 
         var instrumentIds = new int[instruments[^1] + 1];
         for (int i = 0; i < instruments.Count; i++)
